@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+import pandas as pd
+import argparse
+import sqlite3
+
+
+def getoptions():
+    desc = "Create an sqlite database of Biomart gene symbol annotation table"
+    parser = argparse.ArgumentParser(description=desc,
+                                     fromfile_prefix_chars='@')
+    parser.add_argument('biomart_file', type=str, nargs=1,
+                        help='Input Biomart file (.gz accepted)')
+    parser.add_argument('db_file', type=str, nargs=1,
+                        help='Name of the output sqlite database file')
+
+    return parser.parse_args()
+
+
+def import_to_db(args):
+    data = pd.read_table(args.biomart_file[0])
+    conn = sqlite3.connect(args.db_file[0])
+    cur = conn.cursor()
+    data.to_sql('ensembl_id', conn, if_exists='replace')
+    cur.execute('create index ensgene on ensembl_id("Ensembl Gene ID")')
+    cur.execute('create index enstranscript on ensembl_id("Ensembl Transcript ID")')
+    conn.commit()
+    conn.close()
+
+
+if __name__ == '__main__':
+    args = getoptions()
+    import_to_db(args)
+
