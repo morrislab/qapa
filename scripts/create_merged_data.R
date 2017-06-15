@@ -5,12 +5,16 @@ suppressPackageStartupMessages(library(optparse))
 args <- commandArgs(TRUE)
 
 option.list <- list(
-  make_option(c("--ensembl"), type="character", default=NULL,
+  make_option(c("-e", "--ensembl"), type="character", default=NULL,
               help="Ensembl identifiers database file [%default]"),
   make_option(c("-f", "--field"), type="character",
               default="TPM", help="Field to merge [%default]"),
   make_option(c("-m", "--merge_only"), action="store_true", default=FALSE,
               help="Perform merge of fields only. Don't get additional metadata
+              [%default]"),
+  make_option(c("-F", "--format"), type="character", default="salmon",
+              help="Specify transcript quantification method. For Sailfish
+              v0.8 or earlier, use 'sailfish'. Otherwise, use 'salmon'.
               [%default]")
   )
 desc <- paste("\nMerge multlple quantification runs into a single summary table.",
@@ -32,6 +36,10 @@ if (opt$options$merge_only) {
 if (grepl(".db$", opt$options$ensembl)) {
   warning(paste("Did you supply a sqlite3 database to --ensembl?",
                  "We now use a tab-delimited file now!"))
+}
+
+if (!opt$options$format %in% c("sailfish", "salmon")) {
+  stop("QAPA currently supports sailfish or salmon formats")
 }
 
 suppressPackageStartupMessages(library(stringr))
@@ -66,20 +74,31 @@ join_iterative <- function(files, by = NULL, ...) {
   return(x)
 }
 
-load_data <- function(path, field = "TPM") {
+load_data <- function(path, format, field) {
   # Load data and keep only the selected field
 
   if (file.exists(path)) {
-    column.names <- c("Transcript", "Length", "TPM", "NumReads")
 
-    if (! field %in% column.names) {
-      stop("The specified field cannot be found!")
+    if (format == "sailfish") {
+      column.names <- c("Transcript", "Length", "TPM", "NumReads")
+      
+      if (! field %in% column.names) {
+        stop("The specified field cannot be found!")
+      }
+      
+      m <- read.table(path, sep="\t", check.names = FALSE,
+                      stringsAsFactors=FALSE, col.names = column.names)
+      m <- data.table(m[,c(1,2, which(colnames(m) == field))])
+    } else {
+      m <- read.table(path, sep="\t", check.names = FALSE,
+                      header = TRUE, stringsAsFactors=FALSE)
+      if (! field %in% colnames(m)) {
+        stop("The specified field cannot be found!")
+      }
+      m <- data.table(m[,c(1,2, which(colnames(m) == field))])
+      setnames(m, "Name", "Transcript")
     }
 
-    m <- read.table(path, sep="\t", check.names = FALSE, stringsAsFactors=FALSE)
-    stopifnot(ncol(m) == length(column.names))
-    colnames(m) <- column.names
-    m <- data.table(m[,c(1,2, which(column.names == field))])
     setnames(m, field, basename(dirname(path)))
     return(m)
   } else {
@@ -95,7 +114,7 @@ format_multi_ensembl_ids <- function(ids) {
   # ENSMUST00000111043_ENSMUSG00000048482,ENSMUST00000111044_ENSMUSG00000048482_mm9_chr1
   # becomes
   # ENSMUST00000111043,ENSMUST00000111044_ENSMUSG00000048482_mm9_chr1
-  split_ids <- str_match(ids, "^(ENS.+)_((hg19|mm9|mm10).+)")
+  split_ids <- str_match(ids, "^(ENS.+)_((hg19|mm10).+)")
   # Separate multiple Transcript_Gene name
   ens <- strsplit(split_ids[,2], ",")
   # Split transcript and gene names, then re-arrange to combine transcripts and genes
@@ -188,7 +207,8 @@ add_ensembl_metadata <- function(df, dbfile = opt$options$ensembl) {
 #### Join data ####
 write(paste("Merging samples by", opt$options$field), stderr())
 merged_data <- join_iterative(opt$args, by = c("Transcript", "Length"),
-                              field = opt$options$field)
+                              field = opt$options$field,
+                              format = opt$options$format)
 
 # Remove random chromosomes
 if (!opt$options$merge_only && all(grepl("chr[0-9XY]+", merged_data$Transcript))) {

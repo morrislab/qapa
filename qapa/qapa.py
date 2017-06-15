@@ -110,7 +110,10 @@ Note: unless otherwise specified, all input files can be in compressed
     required = quant_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
                           help="Ensembl gene identifier table")
-    optional.add_argument('-s', '--save', type=str, metavar="FILE",
+    optional.add_argumenet('-f', '--field', type=str, metavar='FIELD',
+                           default='TPM',
+                           help='Field to merge [%(default)s]')
+    optional.add_argument('-s', '--save', type=str, metavar='FILE',
                           help='Save intermediate file of merged samples as '
                                'FILE')
     quant_parser.set_defaults(func=quant)
@@ -187,12 +190,12 @@ def quant(args):
         intermediate_name = args.save
 
     try:
-        cmd = "../scripts/create_merged_data.R --ensembl {0} -f TPM {1} > {2}".format(
-            args.db, " ".join(args.quant_files), intermediate_name)
+        cmd = "create_merged_data.R --ensembl {} -f {} {} > {}".format(
+            args.db, args.field, " ".join(args.quant_files), intermediate_name)
         # eprint(cmd)
         os.system(cmd)
 
-        cmd = "../scripts/compute_pau.R -e {0}".format(intermediate_name)
+        cmd = "compute_pau.R -e {}".format(intermediate_name)
         # eprint(cmd)
         os.system(cmd)
 
