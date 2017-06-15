@@ -1,7 +1,4 @@
 #!/usr/bin/env Rscript
-#
-# Copyright (c) 2014-2016 Kevin Ha
-# University of Toronto
 
 suppressPackageStartupMessages(library(optparse))
 

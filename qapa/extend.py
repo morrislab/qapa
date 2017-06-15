@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # For each gene, find the common 5' end shared by all last exons. In most cases,
 # the last exons already share a 5' end and nothing needs to be done. For
 # other cases, such as when there is a last exon overlapping an internal exon:
