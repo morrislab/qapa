@@ -110,7 +110,7 @@ Note: unless otherwise specified, all input files can be in compressed
     required = quant_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
                           help="Ensembl gene identifier table")
-    optional.add_argumenet('-f', '--field', type=str, metavar='FIELD',
+    optional.add_argument('-f', '--field', type=str, metavar='FIELD',
                            default='TPM',
                            help='Field to merge [%(default)s]')
     optional.add_argument('-s', '--save', type=str, metavar='FILE',

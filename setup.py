@@ -19,13 +19,17 @@ setup(name='qapa',
       author_email='k.ha@mail.utoronto.ca',
       license='See LICENSE',
       packages=find_packages(),
-      scripts=['scripts/qapa',
-               'scripts/create_merged_data.R',
+      scripts=['scripts/create_merged_data.R',
                'scripts/compute_pau.R'],
       install_requires=['setuptools',
                         'pandas >= 0.17',
                         'numpy >= 1.10.0',
                         'biopython >= 1.66',
                         'pybedtools >= 0.7.9'],
+      entry_points={
+            'console_scripts': [
+                'qapa = qapa.qapa:main'
+            ]
+      },
       zip_safe=False
       )
