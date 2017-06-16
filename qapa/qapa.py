@@ -10,8 +10,7 @@ from . import annotate
 from . import extend
 from . import collapse
 from . import fasta
-
-__version__ = '1.0.0'
+from .version import __version__
 
 
 def eprint(*args, **kwargs):
