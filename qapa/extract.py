@@ -121,9 +121,13 @@ def main(args, fout=sys.stdout):
 
     c = 0
     n = 0
-    for row in fileinput.FileInput(args.annotation_file,
+    for row in fileinput.input(args.annotation_file,
                                    openhook=fileinput.hook_compressed):
         n = n + 1
+
+        if fileinput.isfirstline():
+            continue
+
         if re.match(r"^#", row):
             c = c + 1
             continue
