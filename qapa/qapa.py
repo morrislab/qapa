@@ -80,7 +80,7 @@ Note: unless otherwise specified, all input files can be in compressed
            can cause issues with Sailfish indices)"""
     fasta_parser = subparsers.add_parser('fasta', description=desc,
                                          help="Extract FASTA "
-                                         "sequences from from BED file")
+                                         "sequences from BED file")
     fasta_parser.add_argument('bed_file', nargs=1, help='Input BED filename')
     fasta_parser.add_argument('output_file', nargs=1, help='Output filename')
     optional = fasta_parser._action_groups.pop()
