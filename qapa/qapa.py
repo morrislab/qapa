@@ -181,8 +181,7 @@ def quant(args):
     intermediate_name = ''
 
     if not args.save:
-        merged_tmp = tempfile.NamedTemporaryFile(prefix='qapa_',
-                                                 suffix='_merge',
+        merged_tmp = tempfile.NamedTemporaryFile(prefix='qapa_merge_',
                                                  delete=False)
         intermediate_name = merged_tmp.name
     else:
