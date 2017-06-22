@@ -6,16 +6,24 @@ args <- commandArgs(TRUE)
 
 option.list <- list(
   make_option(c("-e", "--ensembl"), type="character", default=NULL,
-              help="Ensembl identifiers database file [%default]"),
+              help="Ensembl identifiers database file. Required unless -m is
+              specified. [%default]"),
   make_option(c("-f", "--field"), type="character",
               default="TPM", help="Field to merge [%default]"),
   make_option(c("-m", "--merge_only"), action="store_true", default=FALSE,
-              help="Perform merge of fields only. Don't get additional metadata
+              help="Perform merge of fields only. Don't get additional metadata.
               [%default]"),
   make_option(c("-F", "--format"), type="character", default="salmon",
               help="Specify transcript quantification method. For Sailfish
               v0.8 or earlier, use 'sailfish'. Otherwise, use 'salmon'.
-              [%default]")
+              [%default]"),
+  make_option(c("-a", "--all_genes"), action="store_true", default=FALSE,
+              help="If set to TRUE, do NOT filter for only protein-coding
+              genes [%default]"),
+  make_option(c("-n", "--non_standard"), action="store_true", default=FALSE,
+              help="If set to TRUE, disables QAPA parsing of name column. A
+              valid Ensembl Transcript ID is still required to extract
+              additional metadata, unless -m is specified. [%default]")
   )
 desc <- paste("\nMerge multlple quantification runs into a single summary table.",
               "Output is sent to STDOUT.")
@@ -31,11 +39,8 @@ if (length(opt$args) < 1) {
 
 if (opt$options$merge_only) {
   write("Merge-only mode enabled.", stderr())
-}
-
-if (grepl(".db$", opt$options$ensembl)) {
-  warning(paste("Did you supply a sqlite3 database to --ensembl?",
-                 "We now use a tab-delimited file now!"))
+} else if (is.null(opt$options$ensembl)) {
+  stop("Ensembl identifiers database is required.")
 }
 
 if (!opt$options$format %in% c("sailfish", "salmon")) {
@@ -45,7 +50,7 @@ if (!opt$options$format %in% c("sailfish", "salmon")) {
 suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(dplyr))
-library(assertthat)
+#library(assertthat)
 
 #### Functions #################################################################
 join_iterative <- function(files, by = NULL, ...) {
@@ -64,9 +69,9 @@ join_iterative <- function(files, by = NULL, ...) {
     setTxtProgressBar(pb, i/N)
     y <- load_data(files[i], ...)
     setkeyv(y, by)
-    assert_that(all(x$Transcript == y$Transcript) == TRUE)
+    #assert_that(all(x$Transcript == y$Transcript) == TRUE)
     x <- y[x]
-    assert_that(all(x$Transcript == y$Transcript) == TRUE)
+    #assert_that(all(x$Transcript == y$Transcript) == TRUE)
   }
   setTxtProgressBar(pb, 1)
   close(pb)
@@ -81,11 +86,11 @@ load_data <- function(path, format, field) {
 
     if (format == "sailfish") {
       column.names <- c("Transcript", "Length", "TPM", "NumReads")
-      
+
       if (! field %in% column.names) {
         stop("The specified field cannot be found!")
       }
-      
+
       m <- read.table(path, sep="\t", check.names = FALSE,
                       stringsAsFactors=FALSE, col.names = column.names)
       m <- data.table(m[,c(1,2, which(colnames(m) == field))])
@@ -150,11 +155,11 @@ separate_ensembl_field <- function(df) {
       UTR3.End = as.numeric(as.character(UTR3.End))
     )]
     df[, Length := abs(UTR3.End - UTR3.Start)]
-    #return(df)
+  } else if (grepl("ENS(MUS)*T\\d+", df$Transcript[1])) {
+    df
   } else {
-    stop("Unable to separate Ensembl IDs by regex")
+    stop("Unable to find Ensembl IDs by regex")
   }
-  #return(df)
 }
 
 #### Add Ensembl Gene ID column ####
@@ -162,7 +167,8 @@ extract_one_transcript <- function(ids) {
   str_extract(ids, "ENS(MUS)*T\\d+")
 }
 
-add_ensembl_metadata <- function(df, dbfile = opt$options$ensembl) {
+add_ensembl_metadata <- function(df, dbfile, all_genes = FALSE,
+                                 non_standard = FALSE) {
   # Add additional Ensembl metadata
   # df - merged_data frame
   # dbfile - path of Ensembl metadata file
@@ -173,10 +179,12 @@ add_ensembl_metadata <- function(df, dbfile = opt$options$ensembl) {
   if (all(grepl("ENS(MUS)*T\\d+.*", df$Transcript[1:1000], perl=TRUE))) {
     df[, tid := extract_one_transcript(Transcript)]
 
-    gid <- db[Gene.type == "protein_coding",
-              .(tid=Transcript.stable.ID,
-                Gene=Gene.stable.ID,
-                Gene_Name=Gene.name)] %>%
+    if (!all_genes) {
+      gid <- db[Gene.type == "protein_coding"]
+    }
+    gid <- gid[, .(tid=Transcript.stable.ID,
+                  Gene=Gene.stable.ID,
+                  Gene_Name=Gene.name)] %>%
       unique()
     if ("Gene" %in% colnames(df)) {
       df[, Gene := NULL]   # Remove Gene column so it doesn't conflict with gid results
@@ -196,10 +204,13 @@ add_ensembl_metadata <- function(df, dbfile = opt$options$ensembl) {
   if (c == 0) {
     warning("No annotation matches were found. Are you using the correct database?")
   }
-  meta_cols <- c("Transcript", "Gene", "Gene_Name", "Chr",
-                 "LastExon.Start", "LastExon.End", "Strand", "UTR3.Start",
-                 "UTR3.End", "Length")
-  setcolorder(df, c(meta_cols, sort(colnames(df)[which(!colnames(df) %in% meta_cols)])))
+  if (!non_standard) {
+    meta_cols <- c("Transcript", "Gene", "Gene_Name", "Chr",
+                   "LastExon.Start", "LastExon.End", "Strand", "UTR3.Start",
+                   "UTR3.End", "Length")
+    setcolorder(df, c(meta_cols, 
+                      sort(colnames(df)[which(!colnames(df) %in% meta_cols)])))
+  }
   return(unique(df))
 }
 ################################################################################
@@ -224,7 +235,9 @@ if (!opt$options$merge_only) {
   write("Separating Ensembl IDs", stderr())
   separate_ensembl_field(merged_data)
   write("Adding Ensembl metadata", stderr())
-  merged_data <- add_ensembl_metadata(merged_data, opt$options$ensembl)
+  merged_data <- add_ensembl_metadata(merged_data, opt$options$ensembl,
+                                      opt$options$all_genes,
+                                      opt$options$non_standard)
 }
 
 #### Data adjustment ####
