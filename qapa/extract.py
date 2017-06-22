@@ -34,9 +34,6 @@ class Row:
         bed = None
         name = self.get_stripped_name() + "_" + self.name2
 
-        # Skip 3' UTRs that contain introns
-        # Skip 3' UTRs with length equal to zero
-
         if not self.has_intron_in_3utr and \
                 self.get_3utr_length() >= min_utr_length:
             if self.strand == "+":
@@ -121,8 +118,8 @@ def main(args, fout=sys.stdout):
 
     c = 0
     n = 0
-    for row in fileinput.input(args.annotation_file,
-                                   openhook=fileinput.hook_compressed):
+    for row in fileinput.input(args.annotation_file[0],
+                               openhook=fileinput.hook_compressed):
         n = n + 1
 
         if fileinput.isfirstline():

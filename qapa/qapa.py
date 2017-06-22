@@ -14,7 +14,13 @@ from .version import __version__
 
 
 def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+    print("[qapa] {}".format(*args), file=sys.stderr, **kwargs)
+
+
+def _check_input_files(inputs, parser):
+    for input_file in inputs:
+        if input_file and not os.path.exists(input_file):
+            parser.error("No such file: {}".format(input_file))
 
 
 def getoptions(args=None):
@@ -24,28 +30,34 @@ RNA-seq Quantification of Alternative Polyadenylation (QAPA)
 Choose one of the sub-commands below. Include '-h' for more information.
 Note: unless otherwise specified, all input files can be in compressed
 (.gz) format."""
-    # url = "URL: https://www.github.com/morrislab/QAPA"
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=desc,
                                      fromfile_prefix_chars='@')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s ' + __version__)
-    parser.add_argument('-t', '--temp', type=str, help='Set temp directory')
     optional = parser._action_groups.pop()
-    subparsers = parser.add_subparsers(title="sub-commands")
+    subparsers = parser.add_subparsers(title="sub-commands", dest='subcommand')
     parser._action_groups.append(optional)
+
+    # common args
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument('-t', '--temp', type=str,
+                        help="set temp directory [{}]".
+                        format(tempfile.gettempdir()))
 
     # build utrs
     desc = """Extract 3' UTRs from GENCODE annotation table in genePred format,
-           followed by annotation with GENCODE poly(A) track and PolyASite
-           (http://polyasite.unibas.ch). Output is a BED file sent to STDOUT.
+           followed by annotation with GENCODE poly(A) track and POLYASITE.
+           Output is in BED format plus additional gene symbol column
+           (to STDOUT).
            """
     build_parser = subparsers.add_parser('build', description=desc,
-                                         help="Build 3' UTR reference library")
+                                         help="build 3' UTR reference library",
+                                         parents=[common])
     optional = build_parser._action_groups.pop()
     build_parser.add_argument('annotation_file', nargs=1,
-                              help="Input annotation table")
-    # build_parser.add_argument('output_file', nargs=1, help='Output filename')
+                              help="input annotation table")
+    # build_parser.add_argument('output_file', nargs=1, help='output filename')
 
     required = build_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
@@ -54,23 +66,23 @@ Note: unless otherwise specified, all input files can be in compressed
                           required=True,
                           help="GENCODE poly(A) site track")
     required.add_argument('-p', '--polyasite', dest="polyasite", required=True,
-                          help="Gruber et a. POLYASITE database")
+                          help="POLYASITE database")
     optional.add_argument('-m', '--min_polyasite', dest="min_polyasite",
                           type=int, default=3,
-                          help="Minimum score in POLYASITE [%(default)s]")
+                          help="minimum score in POLYASITE [%(default)s]")
     optional.add_argument('-i', '--intermediate_polyasite',
                           dest="intermediate_polyasite", type=int, default=4,
-                          help="Minimum score in POLYASITE for creating "
+                          help="minimum score in POLYASITE for creating "
                           "intermedate PAS entries [%(default)s]")
 
     optional.add_argument("-d", type=int, default=24,
                           dest="dist3", metavar="DISTANCE",
-                          help="Maximum distance between 3' ends to merge [%(default)s]")
+                          help="maximum distance between 3' ends to merge [%(default)s]")
     optional.add_argument("-f", type=int, default=3,
                           dest="dist5", metavar="DISTANCE",
-                          help="Maximum distance between 5' ends to merge [%(default)s]")
+                          help="maximum distance between 5' ends to merge [%(default)s]")
     optional.add_argument("-s", "--save", action='store_true',
-                          help="Don't automatically delete intermediate files")
+                          help="don't automatically delete intermediate files")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
 
@@ -79,10 +91,11 @@ Note: unless otherwise specified, all input files can be in compressed
            followed by removal of duplicates and short sequences (which
            can cause issues with Sailfish indices)"""
     fasta_parser = subparsers.add_parser('fasta', description=desc,
-                                         help="Extract FASTA "
-                                         "sequences from BED file")
-    fasta_parser.add_argument('bed_file', nargs=1, help='Input BED filename')
-    fasta_parser.add_argument('output_file', nargs=1, help='Output filename')
+                                         help="extract FASTA "
+                                         "sequences from BED file",
+                                         parents=[common])
+    fasta_parser.add_argument('bed_file', nargs=1, help='input BED filename')
+    fasta_parser.add_argument('output_file', nargs=1, help='output filename')
     optional = fasta_parser._action_groups.pop()
     required = fasta_parser.add_argument_group('required named arguments')
     required.add_argument('-f', '--fi', type=str, dest='genome', required=True,
@@ -91,15 +104,16 @@ Note: unless otherwise specified, all input files can be in compressed
     fasta_parser._action_groups.append(optional)
 
     # quantify APA
-    desc = """Collects 3' UTR expression quantifications from one or more
-          samples and merges them into a single table, followed by Poly(A) Site
+    desc = """Merge 3' UTR expression quantifications from one or more
+          samples into a single table, followed by Poly(A) Site
           Usage (PAU) calculation. This step requires 3' UTR expression
-          quantification to be already carried out (e.g. via Sailfish)."""
+          quantification to be already carried out."""
     quant_parser = subparsers.add_parser('quant', description=desc,
-                                         help='Compute PAU for one or more '
-                                              'samples')
+                                         help='compute PAU for one or more '
+                                              'samples',
+                                         parents=[common])
     quant_parser.add_argument('quant_files', nargs='+',
-                              help="Filepaths of one or more 3' UTR "
+                              help="filepaths of one or more 3' UTR "
                                    "quantification files. Expects each file "
                                    "to be inside its own directory (e.g. "
                                    "./path/to/samples_*/quant.sf). The "
@@ -108,21 +122,43 @@ Note: unless otherwise specified, all input files can be in compressed
     optional = quant_parser._action_groups.pop()
     required = quant_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
-                          help="Ensembl gene identifier table")
+                          help="ensembl gene identifier table")
     optional.add_argument('-f', '--field', type=str, metavar='FIELD',
-                           default='TPM',
-                           help='Field to merge [%(default)s]')
+                          default='TPM',
+                          help='field to merge [%(default)s]')
     optional.add_argument('-s', '--save', type=str, metavar='FILE',
-                          help='Save intermediate file of merged samples as '
+                          help='save intermediate file of merged samples as '
                                'FILE')
     quant_parser.set_defaults(func=quant)
     quant_parser._action_groups.append(optional)
 
+    if len(sys.argv) == 1:
+        parser.print_help()
+        parser.exit()
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == 'build':
+            build_parser.print_help()
+        elif sys.argv[1] == 'fasta':
+            fasta_parser.print_help()
+        elif sys.argv[1] == 'quant':
+            quant_parser.print_help()
+        parser.exit()
+
     args = parser.parse_args(args=args)
 
     if args.temp:
-        eprint("[Setting temporary directory to {}]".format(args.temp))
+        if not os.path.exists(args.temp):
+            parser.error("No such directory: {}".format(args.temp))
+        eprint("Setting temporary directory to {}".format(args.temp))
         tempfile.tempdir = args.temp
+
+    if args.subcommand == 'build':
+        _check_input_files([args.polyasite, args.gencode_polya, args.db,
+                           args.annotation_file[0]], build_parser)
+    elif args.subcommand == 'fasta':
+        _check_input_files([args.bed_file[0], args.genome], fasta_parser)
+    elif args.subcommand == 'quant':
+        _check_input_files([args.db], quant_parser)
 
     return args
 
@@ -139,26 +175,26 @@ def build(args):
                                       delete=False)
     try:
         # 1) get last exon from table
-        eprint("[Extracting 3' UTRs from table]")
+        eprint("Extracting 3' UTRs from table")
         extract.main(args, tf1)
-        eprint(tf1.name)
+        # eprint(tf1.name)
         tf1.close()
 
         # 2) annotate 3' ends
-        eprint("[Annotating 3' UTRs]")
+        eprint("Annotating 3' UTRs")
         annotate.main(args, tf1.name, tf2)
-        eprint(tf2.name)
+        # eprint(tf2.name)
         tf2.close()
 
         # 3) extend 5'
-        eprint("[Checking 5' ends]")
+        eprint("Checking 5' ends")
         result = extend.main(args, tf2.name)
         result.to_csv(tf3, sep="\t", index=False, header=True)
-        eprint(tf3.name)
+        # eprint(tf3.name)
         tf3.close()
 
         # # 4) collapse 3' ends
-        eprint("[Collapsing 3' ends]")
+        eprint("Collapsing 3' ends")
         # fout = open(args.output_file[0], 'w')
         result = collapse.merge_bed(args, tf3.name)
         result.to_csv(sys.stdout, sep="\t", index=False, header=False)
@@ -174,7 +210,7 @@ def build(args):
 
 def fetch_sequences(args):
     fasta.main(args)
-    eprint("[Sequences written to {}]".format(args.output_file[0]))
+    eprint("Sequences written to {}".format(args.output_file[0]))
 
 
 def quant(args):
