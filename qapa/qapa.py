@@ -47,7 +47,7 @@ Note: unless otherwise specified, all input files can be in compressed
 
     # build utrs
     desc = """Extract 3' UTRs from GENCODE annotation table in genePred format,
-           followed by annotation with GENCODE poly(A) track and POLYASITE.
+           followed by annotation with GENCODE poly(A) track and PolyAsite.
            Output is in BED format plus additional gene symbol column
            (to STDOUT).
            """
@@ -66,13 +66,13 @@ Note: unless otherwise specified, all input files can be in compressed
                           required=True,
                           help="GENCODE poly(A) site track")
     required.add_argument('-p', '--polyasite', dest="polyasite", required=True,
-                          help="POLYASITE database")
+                          help="PolyAsite database")
     optional.add_argument('-m', '--min_polyasite', dest="min_polyasite",
                           type=int, default=3,
-                          help="minimum score in POLYASITE [%(default)s]")
+                          help="minimum score in PolyAsite [%(default)s]")
     optional.add_argument('-i', '--intermediate_polyasite',
                           dest="intermediate_polyasite", type=int, default=4,
-                          help="minimum score in POLYASITE for creating "
+                          help="minimum score in PolyAsite for creating "
                           "intermedate PAS entries [%(default)s]")
 
     optional.add_argument("-d", type=int, default=24,

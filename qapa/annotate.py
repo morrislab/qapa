@@ -1,5 +1,5 @@
 # Update the 3' ends of GENCODE annotations with more
-# complete poly(A) site coordinates from POLYASITE database and GENCODE poly(A)
+# complete poly(A) site coordinates from PolyAsite database and GENCODE poly(A)
 # site track
 
 import sys
@@ -46,7 +46,7 @@ def update_3prime(feature, min_distance=24,
     if feature[site_start] == '-1':
         return feature
 
-    # Upate cluster poly(A) site coordinates if match is from POLYASITE
+    # Upate cluster poly(A) site coordinates if match is from PolyAsite
     match = re.match(r'chr.*:(\d+):.*', feature[site_name])
     if match:
         if feature.strand == "+":
