@@ -126,23 +126,16 @@ Note: unless otherwise specified, all input files can be in compressed
     optional.add_argument('-f', '--field', type=str, metavar='FIELD',
                           default='TPM',
                           help='field to merge [%(default)s]')
+    optional.add_argument('-F', '--format', type=str, metavar='FORMAT',
+                          choices=['sailfish', 'salmon'], default='salmon',
+                          help="specify transcript quantification method. For "
+                               "Sailfish v0.8 or earlier, use 'sailfish'. "
+                               "Otherwise, use 'salmon'.")
     optional.add_argument('-s', '--save', type=str, metavar='FILE',
                           help='save intermediate file of merged samples as '
                                'FILE')
     quant_parser.set_defaults(func=quant)
     quant_parser._action_groups.append(optional)
-
-    if len(sys.argv) == 1:
-        parser.print_help()
-        parser.exit()
-    elif len(sys.argv) == 2:
-        if sys.argv[1] == 'build':
-            build_parser.print_help()
-        elif sys.argv[1] == 'fasta':
-            fasta_parser.print_help()
-        elif sys.argv[1] == 'quant':
-            quant_parser.print_help()
-        parser.exit()
 
     args = parser.parse_args(args=args)
 
@@ -224,8 +217,9 @@ def quant(args):
         intermediate_name = args.save
 
     try:
-        cmd = "create_merged_data.R --ensembl {} -f {} {} > {}".format(
-            args.db, args.field, " ".join(args.quant_files), intermediate_name)
+        cmd = "create_merged_data.R --ensembl {} -f {} -F {} {} > {}".format(
+            args.db, args.field, args.format, " ".join(args.quant_files),
+            intermediate_name)
         # eprint(cmd)
         os.system(cmd)
 

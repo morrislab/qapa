@@ -30,7 +30,7 @@ QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
    Python packages pandas, numpy, pybedtools, and biopython. These will be
    automatically installed, if necessary.
 
-        git clone git@github.com:morrislab/qapa.git
+        git clone https://github.com/morrislab/qapa.git
         cd qapa
         python setup.py install
 
