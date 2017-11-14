@@ -46,6 +46,11 @@ all input files can be in compressed (gzip) format.
 
 ### 3' UTR library extraction (`build` and `fasta`)
 
+Pre-defined libraries for human and mouse are available for download below. Otherwise, continue to the next section to build from scratch.
+
+  - [Human (hg19)](http://www.morrislab.ca/misc/kha/qapa_3utrs.gencode.hg19.bed.gz)
+  - [Mouse (mm10)](http://www.morrislab.ca/misc/kha/qapa_3utrs.gencode.mm10.bed.gz)
+
 #### Pre-requisites
 
 The following data sources are required:
