@@ -104,7 +104,7 @@ def _extend(feature, most_five_prime, forward, num_extends=0):
     return newfeature
 
 
-def extend_5prime(feature_group, *args):
+def extend_5prime(feature_group, numextends=0):
     '''
     For a set of features grouped by gene_id, find the most 5' end and extend
     the 5' ends of all features to match it
@@ -118,7 +118,8 @@ def extend_5prime(feature_group, *args):
         most_five_prime = max(feature_group.end)
 
     for index, row in feature_group.iterrows():
-        newgroup.append(_extend(row, most_five_prime, forward))
+        newgroup.append(_extend(row, most_five_prime, forward,
+                                numextends))
 
     newgroup = pd.DataFrame(newgroup)\
                  .drop(['exonStarts', 'exonEnds'], axis=1)
@@ -141,7 +142,7 @@ def main(args, input_filename):
     # Process each group
     newdf = []
     for name2, group in df.groupby('name2'):
-        newdf.append(extend_5prime(group))
+        newdf.append(extend_5prime(group, args.numextends))
     return pd.concat(newdf).sort_values(['seqnames', 'start'])
 
 

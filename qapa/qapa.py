@@ -74,7 +74,12 @@ Note: unless otherwise specified, all input files can be in compressed
                           dest="intermediate_polyasite", type=int, default=4,
                           help="minimum score in PolyAsite for creating "
                           "intermedate PAS entries [%(default)s]")
-
+    optional.add_argument("-e", type=int, default=0,
+                          dest="numextends", metavar="DISTANCE",
+                          help="Number of exons to extend in 5' direction. "
+                          "Used for resolving different 5' ends of "
+                          "overlapping 3' UTRs. Setting 0 will exclude "
+                          "internal 3' UTRs. [%(default)s]")
     optional.add_argument("-d", type=int, default=24,
                           dest="dist3", metavar="DISTANCE",
                           help="maximum distance between 3' ends to merge [%(default)s]")
