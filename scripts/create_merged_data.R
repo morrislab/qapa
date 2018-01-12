@@ -29,7 +29,7 @@ desc <- paste("\nMerge multlple quantification runs into a single summary table.
               "Output is sent to STDOUT.")
 parser <- OptionParser(option_list=option.list,
                        description = desc,
-                       usage="usage: %prog [options] <quant directories to merge>")
+                       usage="usage: %prog [options] <quant files to merge>")
 opt <- parse_args(parser, args=args, positional_arguments=TRUE)
 
 if (length(opt$args) < 1) {
@@ -75,7 +75,7 @@ join_iterative <- function(files, by = NULL, ...) {
   }
   setTxtProgressBar(pb, 1)
   close(pb)
-  write("\n", stderr())
+  #write("\n", stderr())
   return(x)
 }
 
@@ -88,7 +88,7 @@ load_data <- function(path, format, field) {
       column.names <- c("Transcript", "Length", "TPM", "NumReads")
 
       if (! field %in% column.names) {
-        stop("The specified field cannot be found!")
+        stop(sprintf("The specified field (%s) cannot be found!", field))
       }
 
       m <- read.table(path, sep="\t", check.names = FALSE,
@@ -176,7 +176,7 @@ add_ensembl_metadata <- function(df, dbfile, all_genes = FALSE,
   db <- read.table(dbfile, header = TRUE, sep = "\t", stringsAsFactors=FALSE) %>%
     data.table()
 
-  if (all(grepl("ENS(MUS)*T\\d+.*", df$Transcript[1:1000], perl=TRUE))) {
+  if (all(grepl("ENS(MUS)*T\\d+.*", df$Transcript[1:min(nrow(df), 1000)], perl=TRUE))) {
     df[, tid := extract_one_transcript(Transcript)]
 
     if (!all_genes) {
@@ -241,8 +241,8 @@ if (!opt$options$merge_only) {
 }
 
 #### Data adjustment ####
-first_sample <- which(colnames(merged_data) == "Length") + 1
-samples_ix <- seq(first_sample, ncol(merged_data))
+# first_sample <- which(colnames(merged_data) == "Length") + 1
+# samples_ix <- seq(first_sample, ncol(merged_data))
 
 #### Write output ####
 write.table(merged_data, file="", quote=F, row.names=F, sep="\t")

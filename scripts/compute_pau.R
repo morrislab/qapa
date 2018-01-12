@@ -136,16 +136,15 @@ if (file == "-") {
 m <- data.table(read.csv(file, sep="\t", header=T, check.names=FALSE, stringsAsFactors=FALSE))
 setkey(m, Gene)
 m[, APA_ID := apa_id(Gene)]
-m <- as.data.frame(m)
+# m <- as.data.frame(m)
 
 # Calculate PAU values ####
 write("Melting data frame", stderr())
-dt <- data.table(
-  melt(m,
+dt <-  melt(m,
        id.vars = c("APA_ID",
                    colnames(m)[1:(get_first_sample_ix(m) - 1)]),
        variable.name = "sample")
-)
+
 
 write("Operating on forward strand", stderr())
 dt.plus <- dt[dt$Strand == "+"]
