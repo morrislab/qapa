@@ -143,7 +143,7 @@ Output is in BED format plus additional gene symbol column
                           choices=['sailfish', 'salmon'], default='salmon',
                           help="specify transcript quantification method. For "
                                "Sailfish v0.8 or earlier, use 'sailfish'. "
-                               "Otherwise, use 'salmon'.")
+                               "Otherwise, use 'salmon'. [%(default)s]")
     optional.add_argument('-s', '--save', type=str, metavar='FILE',
                           help='save intermediate file of merged samples as '
                                'FILE')
