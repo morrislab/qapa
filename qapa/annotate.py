@@ -2,6 +2,7 @@
 # complete poly(A) site coordinates from PolyAsite database and GENCODE poly(A)
 # site track
 
+#from __future__ import print_function
 import sys
 import os
 import pybedtools
@@ -29,8 +30,7 @@ def restore_feature(feature, length=24):
     return feature
 
 
-def update_3prime(feature, min_distance=24,
-                  min_intermediate_pas=4):
+def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False):
     """
     Use the overlapping poly(A) site features and update the 3' end coordinate
     of the interval.
@@ -48,7 +48,7 @@ def update_3prime(feature, min_distance=24,
 
     # Upate cluster poly(A) site coordinates if match is from PolyAsite
     match = re.match(r'chr.*:(\d+):.*', feature[site_name])
-    if match:
+    if match and not custom:
         if feature.strand == "+":
             feature[site_end] = int(match.group(1))
             feature[site_start] = int(feature[site_end]) - 1
@@ -72,7 +72,9 @@ def update_3prime(feature, min_distance=24,
         feature.score = int(feature[start2]) - feature.start
 
     if dist_from_three_prime > min_distance and \
+            not custom and \
             int(feature[site_numsamples]) < min_intermediate_pas:
+        #print("Skipping {}".format(feature.name), file=sys.stderr)
         return None
 
     return feature
@@ -108,28 +110,34 @@ def main(args, input_filename, fout=sys.stdout):
     # Load intervals
     fin = sys.stdin if input_filename == '-' else input_filename
     utrs = pybedtools.BedTool(fin).each(extend_feature).saveas()
+    custom_mode = False
 
     # Load databases with pybedtools
-    pas_filter = re.compile("(DS|TE)$")
-    gencode = pybedtools.BedTool(args.gencode_polya)\
-        .filter(lambda x: x.name == 'polyA_site')\
-        .saveas()
-    polyasite = pybedtools.BedTool(args.polyasite)\
-        .cut(range(0, 6))\
-        .filter(lambda x: int(x.score) >= args.min_polyasite)\
-        .saveas()
-    polyasite = sort_bed(polyasite)
+    if args.other:
+        custom_mode = True
+        custom = pybedtools.BedTool(args.other)
+        sites = sort_bed(custom)
+    else:
+        pas_filter = re.compile("(DS|TE)$")
+        gencode = pybedtools.BedTool(args.gencode_polya)\
+            .filter(lambda x: x.name == 'polyA_site')\
+            .saveas()
+        polyasite = pybedtools.BedTool(args.polyasite)\
+            .cut(range(0, 6))\
+            .filter(lambda x: int(x.score) >= args.min_polyasite)\
+            .saveas()
+        polyasite = sort_bed(polyasite)
 
-    polyasite_te = polyasite\
-        .filter(lambda x: pas_filter.search(x.name))\
-        .saveas()
-    sites = gencode.cat(polyasite_te, postmerge=False)
+        polyasite_te = polyasite\
+            .filter(lambda x: pas_filter.search(x.name))\
+            .saveas()
+        sites = gencode.cat(polyasite_te, postmerge=False)
 
-    # Downstream 1kb PAS
-    # pas_filter = re.compile("DS$")
-    # polyasite_ds = polyasite\
-    #                 .filter(lambda x: pas_filter.search(x.name))\
-    #                 .saveas()
+        # Downstream 1kb PAS
+        # pas_filter = re.compile("DS$")
+        # polyasite_ds = polyasite\
+        #                 .filter(lambda x: pas_filter.search(x.name))\
+        #                 .saveas()
 
     # Procedure:
     #   - Intersect with databases
@@ -142,7 +150,8 @@ def main(args, input_filename, fout=sys.stdout):
     overlap_utrs = utrs.intersect(sites, s=True, wa=True, wb=True)\
                        .each(restore_feature)\
                        .each(update_3prime,
-                             min_intermediate_pas=args.intermediate_polyasite)\
+                             min_intermediate_pas=args.intermediate_polyasite,
+                             custom=custom_mode)\
                        .saveas()
     overlap_utrs = sort_bed(overlap_utrs)\
         .groupby(g=[1, 2, 3, 6, 7, 8, 9], c=[4, 5, 10, 11],

@@ -51,9 +51,9 @@ Pre-defined libraries for human and mouse are available for download below. Othe
   - [Human (hg19)](http://www.morrislab.ca/misc/kha/qapa_3utrs.gencode.hg19.bed.gz)
   - [Mouse (mm10)](http://www.morrislab.ca/misc/kha/qapa_3utrs.gencode.mm10.bed.gz)
 
-#### Pre-requisites
-
 The following data sources are required:
+
+**Gene annotation**
 
 1. Ensembl gene metadata table from [Biomart](http://www.ensembl.org/biomart).
    Human and mouse tables are provided in the `examples` folder.  To obtain a fresh
@@ -78,11 +78,25 @@ The following data sources are required:
    To change the species, replace the table name (e.g. for human, use
    `hsapiens_gene_ensembl__transcript__main`).
 
-2. PolyAsite database
+2. GENCODE gene prediction annotation table
+
+   Download from [UCSC Table Browser](https://genome.ucsc.edu/cgi-bin/hgTables)
+   or alternatively via MySQL. For example, to download mm10 gene predictions:
+
+        mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A -e "select * from
+            wgEncodeGencodeBasicVM9" mm10 > gencode.basic.txt
+
+   Note that the `-N` option (suppress column headings) is not used here.
+
+**Poly(A) site annotation**
+
+Two options are available:
+
+1. PolyAsite database
 
    Download BED files (human or mouse) from http://polyasite.unibas.ch/.
 
-3. GENCODE poly(A) sites track
+2. GENCODE poly(A) sites track
 
    Download from [UCSC Table Browser](https://genome.ucsc.edu/cgi-bin/hgTables)
    or alternatively via MySQL (see
@@ -93,17 +107,17 @@ The following data sources are required:
         txEnd, name2, score, strand from wgEncodeGencodePolyaVM9 where name2 =
         'polyA_site'" -N mm10 > gencode.polyA_sites.bed
 
-4. GENCODE gene prediction annotation table
+*or*
 
-   Download from [UCSC Table Browser](https://genome.ucsc.edu/cgi-bin/hgTables)
-   or alternatively via MySQL. For example, to download mm10 gene predictions:
+1. (*new in v1.1.0*) Custom BED track of poly(A) sites
 
-        mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A -e "select * from
-            wgEncodeGencodeBasicVM9" mm10 > gencode.basic.txt
+    Alternatively a custom BED file of poly(A) can be used to annotate 3' UTRs.
+    Each entry must contain the start (0-based) and end coordinate of a poly(A)
+    site.
 
-   Note that the `-N` option (suppress column headings) is not used here.
+**Reference genome**
 
-5. A reference genome in FASTA format is required for extracting sequences from
+A reference genome in FASTA format is required for extracting sequences from
    BED files. Can be downloaded from
    http://hgdownload.soe.ucsc.edu/downloads.html.
 
@@ -113,6 +127,11 @@ To extract 3' UTRs from annotation, run:
 
     qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed
         -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
+
+Or when using a custom BED file:
+
+    qapa build --db ensembl_identifiers.txt -o custom_sites.bed
+        gencode.basic.txt > output_utrs.bed
 
 Results will be saved in the file `output_utrs.bed` (default is STDOUT).
 
@@ -153,20 +172,27 @@ For advanced usage, the R scripts can be run on its own. Run
 
 The final output format is as follows:
 
-1. APA_ID: unique identifier consisting of in the format `<Ensembl Gene
-   ID>_<number>_<(P|D|S)>`, where P = proximal, D = distal, and S = single
-1. Transcript: one or more Ensembl Transcript IDs
-1. Gene: Ensembl Gene ID
-1. Gene_Name: gene symbol
-1. Chr: chromosome
-1. LastExon.Start: start coordinate of last exon
-1. LastExon.End: end coordinate of last exon
-1. Strand: + or -
-1. UTR3.Start: start coordinate of 3' UTR
-1. UTR3.End: end coordinate of 3' UTR
-1. Length: length of the 3' UTR
-1. Num_Events: number of PAS per gene
-1. *sample1*.PAU: PAU estimate for *sample1*
-1. *sample2*.PAU: PAU estimate for *sample2*
-1. *sample1*.TPM: TPM estimate for *sample1*
-1. *sample2*.TPM: TPM estimate for *sample2*
+Column | Description
+------ | -----------
+APA_ID | unique identifier consisting of in the format `<Ensembl Gene ID>_<number>_<(P\|D\|S)>`, where P = proximal, D = distal, and S = single
+Transcript | one or more Ensembl Transcript IDs
+Gene | Ensembl Gene ID
+Gene_Name | gene symbol
+Chr | chromosome
+LastExon.Start | start coordinate of last exon
+LastExon.End | end coordinate of last exon
+Strand | + or -
+UTR3.Start | start coordinate of 3' UTR
+UTR3.End | end coordinate of 3' UTR
+Length | length of the 3' UTR
+Num_Events | number of PAS per gene
+*sample1*.PAU | PAU estimate for *sample1*
+*sample2*.PAU | PAU estimate for *sample2*
+*sample1*.TPM | TPM estimate for *sample1*
+*sample2*.TPM | TPM estimate for *sample2*
+
+## Citation
+
+```
+Ha, KCH, Blencowe BJ, Morris, Q, 2018. QAPA: a new method for the systematic analysis of alternative polyadenylation from RNA-seq data. Genome Biology. (in press)
+```

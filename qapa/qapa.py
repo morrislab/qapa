@@ -46,12 +46,17 @@ Note: unless otherwise specified, all input files can be in compressed
                         format(tempfile.gettempdir()))
 
     # build utrs
-    desc = """Extract 3' UTRs from GENCODE annotation table in genePred format,
-           followed by annotation with GENCODE poly(A) track and PolyAsite.
-           Output is in BED format plus additional gene symbol column
-           (to STDOUT).
+    desc = """
+Extract 3' UTRs from GENCODE annotation table in genePred format,
+followed by annotation with GENCODE poly(A) track and PolyAsite.
+Alternatively, the second step can be carried out using a custom BED
+file using option -o. 
+
+Output is in BED format plus additional gene symbol column
+(to STDOUT).
            """
     build_parser = subparsers.add_parser('build', description=desc,
+                                         formatter_class=argparse.RawDescriptionHelpFormatter,
                                          help="build 3' UTR reference library",
                                          parents=[common])
     optional = build_parser._action_groups.pop()
@@ -63,9 +68,8 @@ Note: unless otherwise specified, all input files can be in compressed
     required.add_argument("--db", type=str, required=True,
                           help="Ensembl gene identifier table")
     required.add_argument('-g', '--gencode_polya', dest="gencode_polya",
-                          required=True,
                           help="GENCODE poly(A) site track")
-    required.add_argument('-p', '--polyasite', dest="polyasite", required=True,
+    required.add_argument('-p', '--polyasite', dest="polyasite", 
                           help="PolyAsite database")
     optional.add_argument('-m', '--min_polyasite', dest="min_polyasite",
                           type=int, default=3,
@@ -86,6 +90,10 @@ Note: unless otherwise specified, all input files can be in compressed
     optional.add_argument("-f", type=int, default=3,
                           dest="dist5", metavar="DISTANCE",
                           help="maximum distance between 5' ends to merge [%(default)s]")
+    optional.add_argument("-o", "--other", default=None,
+                          help="Use this option to annotate 3' UTRs with a "
+                          "custom BED file of poly(A) sites. This option "
+                          "cannot be used in conjunction with -g and -p.")
     optional.add_argument("-s", "--save", action='store_true',
                           help="don't automatically delete intermediate files")
     build_parser.set_defaults(func=build)
@@ -150,9 +158,17 @@ Note: unless otherwise specified, all input files can be in compressed
         eprint("Setting temporary directory to {}".format(args.temp))
         tempfile.tempdir = args.temp
 
+    if args.other is None and \
+        (args.gencode_polya is None or args.polyasite is None):
+            parser.error("Missing arguments: -g and/or -p")
+
+    if args.other and (args.gencode_polya or args.polyasite):
+        eprint("Option -o (custom BED) will be used for build phase and "
+               "-g and -p will be ignored")
+
     if args.subcommand == 'build':
         _check_input_files([args.polyasite, args.gencode_polya, args.db,
-                           args.annotation_file[0]], build_parser)
+                            args.other, args.annotation_file[0]], build_parser)
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
     elif args.subcommand == 'quant':
