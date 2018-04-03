@@ -158,17 +158,17 @@ Output is in BED format plus additional gene symbol column
         eprint("Setting temporary directory to {}".format(args.temp))
         tempfile.tempdir = args.temp
 
-    if args.other is None and \
-        (args.gencode_polya is None or args.polyasite is None):
-            parser.error("Missing arguments: -g and/or -p")
-
-    if args.other and (args.gencode_polya or args.polyasite):
-        eprint("Option -o (custom BED) will be used for build phase and "
-               "-g and -p will be ignored")
-
     if args.subcommand == 'build':
         _check_input_files([args.polyasite, args.gencode_polya, args.db,
                             args.other, args.annotation_file[0]], build_parser)
+
+        if args.other is None and \
+            (args.gencode_polya is None or args.polyasite is None):
+                parser.error("Missing arguments: -g and/or -p")
+
+        if args.other and (args.gencode_polya or args.polyasite):
+            eprint("Option -o (custom BED) will be used for build phase and "
+                   "-g and -p will be ignored")
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
     elif args.subcommand == 'quant':
