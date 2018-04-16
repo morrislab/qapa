@@ -179,6 +179,10 @@ if (opt$options$expr) {
   expr <- dcast(expr, Transcript + Gene + Gene_Name + Chr + LastExon.Start +
                   LastExon.End + Strand + UTR3.Start + UTR3.End + Length ~ sample,
                 value.var = "value")
+  meta <- grep(".TPM$", colnames(expr), value = TRUE, invert = TRUE)
+  pau_samples <- grep(".PAU$", colnames(pau), value = TRUE)
+  tpm_samples <- str_replace(pau_samples, ".PAU$", ".TPM")
+  setcolorder(expr, c(meta, tpm_samples))
   pau <- merge(pau, data.table(expr),
                by = c("Transcript", "Gene", "Gene_Name", "Chr", "LastExon.Start",
                       "LastExon.End", "Strand", "UTR3.Start", "UTR3.End", "Length"))

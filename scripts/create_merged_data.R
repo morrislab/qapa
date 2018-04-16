@@ -180,9 +180,9 @@ add_ensembl_metadata <- function(df, dbfile, all_genes = FALSE,
     df[, tid := extract_one_transcript(Transcript)]
 
     if (!all_genes) {
-      gid <- db[Gene.type == "protein_coding"]
+      db <- db[Gene.type == "protein_coding"]
     }
-    gid <- gid[, .(tid=Transcript.stable.ID,
+    gid <- db[, .(tid=Transcript.stable.ID,
                   Gene=Gene.stable.ID,
                   Gene_Name=Gene.name)] %>%
       unique()

@@ -193,6 +193,6 @@ Num_Events | number of PAS per gene
 
 ## Citation
 
-Ha, KCH, Blencowe BJ, Morris, Q, 2018. QAPA: a new method for the systematic
-analysis of alternative polyadenylation from RNA-seq data. Genome Biology. (in
-press)
+Ha, K.C.H., Blencowe, B.J., Morris, Q. (2018). QAPA: a new method for the
+systematic analysis of alternative polyadenylation from RNA-seq data. Genome
+Biol. 19, 45.
