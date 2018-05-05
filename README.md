@@ -90,7 +90,9 @@ The following data sources are required:
 
 **Poly(A) site annotation**
 
-Two options are available:
+Two options are available.
+
+Option 1: standard approach (as described in the [paper](#citation))
 
 1. PolyAsite database
 
@@ -107,9 +109,9 @@ Two options are available:
         txEnd, name2, score, strand from wgEncodeGencodePolyaVM9 where name2 =
         'polyA_site'" -N mm10 > gencode.polyA_sites.bed
 
-*or*
+Option 2: use custom BED track (*new in v1.1.0*)
 
-1. (*new in v1.1.0*) Custom BED track of poly(A) sites
+1. Custom BED track of poly(A) sites
 
     Alternatively a custom BED file of poly(A) can be used to annotate 3' UTRs.
     Each entry must contain the start (0-based) and end coordinate of a poly(A)
@@ -196,3 +198,4 @@ Num_Events | number of PAS per gene
 Ha, K.C.H., Blencowe, B.J., Morris, Q. (2018). QAPA: a new method for the
 systematic analysis of alternative polyadenylation from RNA-seq data. Genome
 Biol. 19, 45.
+[[link]](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1414-4)
