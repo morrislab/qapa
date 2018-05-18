@@ -8,8 +8,13 @@ import pandas as pd
 
 
 class Row:
-    def __init__(self, row):
+    def __init__(self, row, no_header=False):
         l = row.rstrip().split("\t")
+        if no_header:
+            # add a dummy column in front of list to represent bin column in
+            # UCSC genePred tables
+            l.insert(0, "dummy")
+
         self.name = l[1]
         self.chrom = l[2]
         self.strand = l[3]
@@ -122,14 +127,14 @@ def main(args, fout=sys.stdout):
                                openhook=fileinput.hook_compressed):
         n = n + 1
 
-        if fileinput.isfirstline():
+        if fileinput.isfirstline() and not args.no_header:
             continue
 
         if re.match(r"^#", row):
             c = c + 1
             continue
 
-        rowobj = Row(row)
+        rowobj = Row(row, args.no_header)
 
         if rowobj.is_on_random_chromosome():
             c = c + 1
