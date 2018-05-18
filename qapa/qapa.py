@@ -96,6 +96,14 @@ Output is in BED format plus additional gene symbol column
                           "cannot be used in conjunction with -g and -p.")
     optional.add_argument("-s", "--save", action='store_true',
                           help="don't automatically delete intermediate files")
+    optional.add_argument("-H", "--no_header", action='store_true',
+                          help="Annotation table (genePred) has no header. "
+                          "Use this option if your input table was created "
+                          "using gtfToGenePred -genePredExt.")
+    optional.add_argument("-N", "--no_annotation", action='store_true',
+                          help="Skip annotation step. Use this option if you "
+                          "only have a gene model annotation file to build "
+                          "a 3' UTR library.")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
 
@@ -163,12 +171,17 @@ Output is in BED format plus additional gene symbol column
                             args.other, args.annotation_file[0]], build_parser)
 
         if args.other is None and \
-            (args.gencode_polya is None or args.polyasite is None):
+            (args.gencode_polya is None or args.polyasite is None) and \
+            not args.no_annotation:
                 parser.error("Missing arguments: -g and/or -p")
 
         if args.other and (args.gencode_polya or args.polyasite):
             eprint("Option -o (custom BED) will be used for build phase and "
                    "-g and -p will be ignored")
+
+        if args.no_annotation:
+            eprint("Annotation step will be skipped")
+
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
     elif args.subcommand == 'quant':
