@@ -1,4 +1,4 @@
-## RNA-seq Quantification of Alternative Polyadenylation (QAPA)
+# RNA-seq Quantification of Alternative Polyadenylation (QAPA)
 
 Analysis of alternative polyadenylation (APA) from RNA-seq
 data (human and mouse). QAPA consists of two main components:
@@ -11,7 +11,7 @@ Note that QAPA itself does not perform transcript quantification. It relies on
 other tools such as [Sailfish](https://github.com/kingsfordgroup/sailfish) and
 [Salmon](https://github.com/COMBINE-lab/salmon).
 
-## Installation
+# Installation
 
 QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
 
@@ -39,12 +39,12 @@ QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
         which qapa
         qapa -h
 
-## Usage
+# Usage
 
 QAPA has three sub-commands: `build`, `fasta`, and `quant`. Unless specified,
 all input files can be in compressed (gzip) format.
 
-### 3' UTR library extraction (`build` and `fasta`)
+## 3' UTR library extraction (`build` and `fasta`)
 
 Pre-defined libraries for human and mouse are available for download below. Otherwise, continue to the next section to build from scratch.
 
@@ -53,7 +53,7 @@ Pre-defined libraries for human and mouse are available for download below. Othe
 
 The following data sources are required:
 
-**Gene annotation**
+**A. Gene annotation**
 
 1. Ensembl gene metadata table from [Biomart](http://www.ensembl.org/biomart).
    Human and mouse tables are provided in the `examples` folder.  To obtain a fresh
@@ -88,7 +88,7 @@ The following data sources are required:
 
    Note that the `-N` option (suppress column headings) is not used here.
 
-**Poly(A) site annotation**
+**B. Poly(A) site annotation**
 
 Two options are available.
 
@@ -117,13 +117,13 @@ Option 2: use custom BED track (*new in v1.1.0*)
     Each entry must contain the start (0-based) and end coordinate of a poly(A)
     site.
 
-**Reference genome**
+**C. Reference genome**
 
 A reference genome in FASTA format is required for extracting sequences from
-   BED files. Can be downloaded from
+   BED files. e.g. 
    http://hgdownload.soe.ucsc.edu/downloads.html.
 
-#### Run
+### Run
 
 To extract 3' UTRs from annotation, run:
 
@@ -144,10 +144,14 @@ To extract sequences from the resulting BED file, use the `fasta` sub-command
 
 Note that `genome.fa` must be uncompressed. Sequences will be saved in
 `output_sequences.fa`. This file can then be indexed by transcript
-quantification tools like Sailfish/Salmon. It is important that the sequence IDs
+quantification tools like Sailfish/Salmon:
+    
+    salmon index -t output_sequences.fa -i utr_library
+     
+It is important that the sequence IDs
 are not modified as it will be parsed by the `quant` sub-command.
 
-### Quantification of 3' UTR isoform usage (`quant`)
+## Quantification of 3' UTR isoform usage (`quant`)
 
 Expression quantification of 3' UTR isoforms must be carried out first. Once
 this is done, QAPA expects the quantification results to be located inside its
@@ -193,7 +197,7 @@ Num_Events | number of PAS per gene
 *sample1*.TPM | TPM estimate for *sample1*
 *sample2*.TPM | TPM estimate for *sample2*
 
-## Citation
+# Citation
 
 Ha, K.C.H., Blencowe, B.J., Morris, Q. (2018). QAPA: a new method for the
 systematic analysis of alternative polyadenylation from RNA-seq data. Genome
