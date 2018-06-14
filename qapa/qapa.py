@@ -69,7 +69,7 @@ Output is in BED format plus additional gene symbol column
                           help="Ensembl gene identifier table")
     required.add_argument('-g', '--gencode_polya', dest="gencode_polya",
                           help="GENCODE poly(A) site track")
-    required.add_argument('-p', '--polyasite', dest="polyasite", 
+    required.add_argument('-p', '--polyasite', dest="polyasite",
                           help="PolyAsite database")
     optional.add_argument('-m', '--min_polyasite', dest="min_polyasite",
                           type=int, default=3,
@@ -94,8 +94,13 @@ Output is in BED format plus additional gene symbol column
                           help="Use this option to annotate 3' UTRs with a "
                           "custom BED file of poly(A) sites. This option "
                           "cannot be used in conjunction with -g and -p.")
+    optional.add_argument("-C", "--no_skip_random_chromosomes", default=True,
+                          action="store_true",
+                          help="Disable skiping of chromosomes that don't "
+                          "match the regular expression pattern "
+                          " '^(chr)*[0-9XY]+$'")
     optional.add_argument("-s", "--save", action='store_true',
-                          help="don't automatically delete intermediate files")
+                          help="Don't automatically delete intermediate files")
     optional.add_argument("-H", "--no_header", action='store_true',
                           help="Annotation table (genePred) has no header. "
                           "Use this option if your input table was created "
