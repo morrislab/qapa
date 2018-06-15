@@ -256,7 +256,7 @@ def quant(args):
         intermediate_name = args.save
 
     try:
-        cmd = "create_merged_data.R --ensembl {} -f {} -F {} {} > {}".format(
+        cmd = "create_merged_data.R --db {} -f {} -F {} {} > {}".format(
             args.db, args.field, args.format, " ".join(args.quant_files),
             intermediate_name)
         # eprint(cmd)
