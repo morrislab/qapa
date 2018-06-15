@@ -119,7 +119,8 @@ format_multi_ensembl_ids <- function(ids) {
   # ENSMUST00000111043_ENSMUSG00000048482,ENSMUST00000111044_ENSMUSG00000048482_mm9_chr1
   # becomes
   # ENSMUST00000111043,ENSMUST00000111044_ENSMUSG00000048482_mm9_chr1
-  split_ids <- str_match(ids, "^([^_]+_[^_]+)_(([^_]+).+)")
+  # Test regex: https://regex101.com/r/zuDsy1/1
+  split_ids <- str_match(ids, "^(([^_]+_[^_,]+)(,[^_]+_[^_,]+)*)_(([^_]+).+)")
   # Separate multiple Transcript_Gene name
   ens <- strsplit(split_ids[,2], ",")
   # Split transcript and gene names, then re-arrange to combine transcripts and genes
@@ -129,11 +130,11 @@ format_multi_ensembl_ids <- function(ids) {
       paste(., collapse="_")
   })
   stopifnot(length(ens) == length(ids))
-  apply(cbind(ens, split_ids[,3]), 1, paste, collapse="_")
+  apply(cbind(ens, split_ids[,5]), 1, paste, collapse="_")
 }
 
 separate_ensembl_field <- function(df) {
-  tx_pattern <- "^([^_]+_){2}[^_]+_(chr)*[0-9XY]+_\\d+_\\d+_[-+]_utr_\\d+_\\d+"
+  tx_pattern <- "^([^_]+_[^_,]+)(,[^_]+_[^_,]+)*_[^_]+_(chr)*\\w+_\\d+_\\d+_[-+]_utr_\\d+_\\d+"
   if (grepl(tx_pattern, df$Transcript[1], perl = TRUE)) {
     # Format Ensembl Transcript and Ensembl Gene IDs if there are multiple
     # Remove utr tag
