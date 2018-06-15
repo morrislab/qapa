@@ -31,10 +31,14 @@ suppressPackageStartupMessages(library(data.table))
 calculate <- function(dt, qscore) {
   # Calculate UTR Index given a data.table
   #
-  # Return as data frame
+  # Return as data table or NULL if dt is empty
   write("Calculating Poly(A) Usage", stderr())
   write(paste("\t", nrow(dt), "rows,", length(unique(dt$Gene)), "genes"), stderr())
 
+  if (nrow(dt) == 0) {
+      return(NULL)
+  }
+  
   dt[, c("APA_ID", "pau") :=
             list(update_apa_id(APA_ID, UTR3.Start, UTR3.End),
                  calc_pau(value)
@@ -102,8 +106,6 @@ create_apa_id <- function(d) {
 
 update_apa_id <- function(x, start, end) {
   # Update APA_ID with proximal, distal or single status - added as another suffix
-  # x <- apa_id(rep(x, length(start)))
-
   if (length(x) == 1) {
     x <- paste(x, "S", sep = "_")
   } else {
@@ -136,7 +138,6 @@ if (file == "-") {
 m <- data.table(read.csv(file, sep="\t", header=T, check.names=FALSE, stringsAsFactors=FALSE))
 setkey(m, Gene)
 m[, APA_ID := apa_id(Gene)]
-# m <- as.data.frame(m)
 
 # Calculate PAU values ####
 write("Melting data frame", stderr())
@@ -174,6 +175,12 @@ pau <- n_sites[pau]
 if (opt$options$expr) {
   # Append a suffix (e.g. .TPM) to the end to distinguish from the pau columns
   write("\nAdding input expression values", stderr())
+  if (nrow(dt.plus) == 0) {
+      dt.plus <- NULL
+  }
+  if (nrow(dt.minus) == 0) {
+      dt.minus <- NULL
+  }
   expr <- rbind(dt.plus, dt.minus)
   expr[,sample := paste0(sample, ".TPM")]
   expr <- dcast(expr, Transcript + Gene + Gene_Name + Chr + LastExon.Start +
