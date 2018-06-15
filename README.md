@@ -15,29 +15,36 @@ other tools such as [Sailfish](https://github.com/kingsfordgroup/sailfish) and
 
 QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
 
-1. Install [R](https://www.r-project.org/) and the R packages optparse, dplyr,
-   data.table, and stringr. In the R console, the packages can be installed in
-   one line:
-
-        install.packages(c("optparse", "dplyr", "data.table", "stringr"))
-
-2. Install the latest development version of
+1. Install the latest development version of
    [bedtools](https://github.com/arq5x/bedtools2). *Note: do not use 2.26.0
    stable release as there is a
    [bug](https://github.com/arq5x/bedtools2/issues/435) with the groupBy tool*.
 
-3. Install the latest QAPA Python/R source code from GitHub. QAPA requires the
-   Python packages pandas, numpy, pybedtools, and biopython. These will be
-   automatically installed, if necessary.
+2. Install the latest development version (or the latest
+   [release](https://github.com/morrislab/qapa/releases/latest)) of QAPA from
+   GitHub . QAPA requires the Python packages pandas, numpy, pybedtools, and
+   biopython. These will be automatically installed, if necessary.
 
         git clone https://github.com/morrislab/qapa.git
         cd qapa
         python setup.py install
 
-        # To test if installation is working:
-        cd
-        which qapa
-        qapa -h
+3. Install [R](https://www.r-project.org/) and the R packages optparse, dplyr,
+   data.table, and stringr. In the R console, the packages can be installed in
+   one line:
+
+        install.packages(c("optparse", "dplyr", "data.table", "stringr"))
+
+   Alternatively, run the provided `install_packages.R` helper script from
+   command line:
+
+        Rscript scripts/install_packages.R
+
+4. To test if installation is working:
+
+        cd          # change to root directory
+        which qapa  # should return path of qapa executable
+        qapa -h     # should display help message
 
 ## Usage
 
@@ -86,11 +93,15 @@ The following data sources are required:
         mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A -e "select * from
             wgEncodeGencodeBasicVM9" mm10 > gencode.basic.txt
 
-   Note that the `-N` option (suppress column headings) is not used here.
+   Alternatively, if you are starting from a GTF/GFF file, you can convert
+   it to genePred format using the UCSC tool
+   [`gtfToGenePred`](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred):
+
+        gtfToGenePred -genePredExt custom_genes.gtf custom_genes.genedPred
 
 **Poly(A) site annotation**
 
-Two options are available.
+As of v1.2.0, this step is optional. Otherwise, two options are available:
 
 Option 1: standard approach (as described in the [paper](#citation))
 
@@ -109,11 +120,11 @@ Option 1: standard approach (as described in the [paper](#citation))
         txEnd, name2, score, strand from wgEncodeGencodePolyaVM9 where name2 =
         'polyA_site'" -N mm10 > gencode.polyA_sites.bed
 
-Option 2: use custom BED track (*new in v1.1.0*)
+Option 2: use custom BED track
 
 1. Custom BED track of poly(A) sites
 
-    Alternatively a custom BED file of poly(A) can be used to annotate 3' UTRs.
+    A custom BED file of poly(A) can be used to annotate 3' UTRs.
     Each entry must contain the start (0-based) and end coordinate of a poly(A)
     site.
 
@@ -127,13 +138,20 @@ A reference genome in FASTA format is required for extracting sequences from
 
 To extract 3' UTRs from annotation, run:
 
-    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed
-        -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
+    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
 
-Or when using a custom BED file:
+If using a custom BED file, replace the `-g` and `-p` options with `-o`:
 
-    qapa build --db ensembl_identifiers.txt -o custom_sites.bed
-        gencode.basic.txt > output_utrs.bed
+    qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
+
+If using a custom genePred file converted from GTF, include the `-H`
+option:
+
+    qapa build -H --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
+ 
+If bypassing the poly(A) annotation step, include the `-N` option:
+
+    qapa build -N --db ensembl_identifiers.txt gencode.basic.txt > output.utrs.bed
 
 Results will be saved in the file `output_utrs.bed` (default is STDOUT).
 
