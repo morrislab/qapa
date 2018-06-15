@@ -11,7 +11,7 @@ import warnings
 
 
 class Interval:
-    def __init__(self, l):
+    def __init__(self, l, sp=None):
         #l = line.rstrip().split("\t")
         self.chrom = l[0]
         self.start = int(l[1])
@@ -24,6 +24,7 @@ class Interval:
         self.end2 = int(l[7])
         self.gene_id = l[8]
         #self.utr_id = l[9]
+        self.species = self._guess_species(sp)
 
     def is_forward(self):
         return self.strand == "+"
@@ -45,14 +46,14 @@ class Interval:
         else:
             self.score = self.start2 - self.start
 
-    def finalize(self):
+    def finalize(self, species=None):
         '''Print the interval using the highest peak'''
         if self.is_forward():
             utr_co = [self.end2, self.end]
         else:
             utr_co = [self.start, self.start2]
-        new_name = [self.name, self._guess_species(), self.chrom, self.start,
-                    self.end, self.strand, 'utr'] + utr_co
+        new_name = [self.name, self.species, self.chrom, 
+                    self.start, self.end, self.strand, 'utr'] + utr_co
         new_name = "_".join([str(x) for x in new_name])
         self.set_score()
         return [self.chrom, self.start, self.end, new_name, self.score,
@@ -68,11 +69,13 @@ class Interval:
         else:
             self.gene_id = None
 
-    def _guess_species(self):
+    def _guess_species(self, species=None):
         if re.match(r'ENST\d+', self.name):
             return 'hg19'
         elif re.match(r'ENSMUST\d+', self.name):
             return 'mm10'
+        elif species is not None:
+            return species
         warnings.warn('Could not guess species from gene name!', Warning)
         return 'unk'
 
@@ -131,12 +134,8 @@ def merge_bed(args, inputfile):
     overlap_diff_genes = set()
 
     print("Iterating and merging intervals by 3' end", file=sys.stderr)
-    # for line in input:
     for index, line in df.iterrows():
-        if re.match(r'^(?!chr)', line[0]):
-            continue
-
-        my_interval = Interval(line)
+        my_interval = Interval(line, args.species)
 
         if prev_interval is None:
             prev_interval = my_interval

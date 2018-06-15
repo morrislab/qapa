@@ -2,6 +2,7 @@ from __future__ import print_function
 import sys
 import os
 import os.path
+import re
 import argparse
 import tempfile
 
@@ -109,6 +110,9 @@ Output is in BED format plus additional gene symbol column
                           help="Skip annotation step. Use this option if you "
                           "only have a gene model annotation file to build "
                           "a 3' UTR library.")
+    optional.add_argument("--species", type=str,
+                          help="Set species. Useful if not using 'hg19' or "
+                          "'mm10', otherwise 'unk' is used.")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
 
@@ -186,6 +190,10 @@ Output is in BED format plus additional gene symbol column
 
         if args.no_annotation:
             eprint("Annotation step will be skipped")
+
+        if not (args.species is None or \
+                re.match(r'^[a-zA-Z0-9]+$', args.species)):
+            parser.error("Species must be alphanumeric.")
 
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
