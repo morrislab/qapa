@@ -138,16 +138,19 @@ A reference genome in FASTA format is required for extracting sequences from
 
 To extract 3' UTRs from annotation, run:
 
-    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
+    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed 
+        gencode.basic.txt > output_utrs.bed
 
 If using a custom BED file, replace the `-g` and `-p` options with `-o`:
 
-    qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
+    qapa build --db ensembl_identifiers.txt -o custom_sites.bed
+        gencode.basic.txt > output_utrs.bed
 
 If using a custom genePred file converted from GTF, include the `-H`
 option:
 
-    qapa build -H --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
+    qapa build -H --db ensembl_identifiers.txt -o custom_sites.bed
+        custom_genes.genePred > output_utrs.bed
  
 If bypassing the poly(A) annotation step, include the `-N` option:
 
