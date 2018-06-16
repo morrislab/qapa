@@ -121,6 +121,11 @@ format_multi_ensembl_ids <- function(ids) {
   # ENSMUST00000111043,ENSMUST00000111044_ENSMUSG00000048482_mm9_chr1
   # Test regex: https://regex101.com/r/zuDsy1/1
   split_ids <- str_match(ids, "^(([^_]+_[^_,]+)(,[^_]+_[^_,]+)*)_(([^_]+).+)")
+  
+  if (is.na(split_ids[1])) {
+      stop("Unable to format Ensembl ID by regex")
+  }
+  
   # Separate multiple Transcript_Gene name
   ens <- strsplit(split_ids[,2], ",")
   # Split transcript and gene names, then re-arrange to combine transcripts and genes
