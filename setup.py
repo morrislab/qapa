@@ -4,8 +4,7 @@ from setuptools import find_packages
 from distutils.core import setup
 
 if sys.version_info[:2] < (2, 7):
-    sys.stderr.write("At least Python 2.7, or Python 3.5 or later "
-                     "is required\n")
+    sys.stderr.write("At least Python 2.7 or later is required\n")
     sys.exit(1)
 elif sys.version_info[0] == 3 and sys.version_info[:2] < (3, 5):
     sys.stderr.write("At least Python 3.5 or later is required.\n")
