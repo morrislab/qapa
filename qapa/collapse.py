@@ -59,16 +59,6 @@ class Interval:
         return [self.chrom, self.start, self.end, new_name, self.score,
                 self.strand, self.gene_id]
 
-    def set_gene(self, conn):
-        '''Query for Ensembl Gene ID'''
-        query = 'select gene_id from ensembl_id where transcript_id = ?'
-        cur = conn.execute(query, (self.name,))
-        r = cur.fetchone()
-        if r:
-            self.gene_id = r[0]
-        else:
-            self.gene_id = None
-
     def _guess_species(self, species=None):
         if re.match(r'ENST\d+', self.name):
             return 'hg19'
