@@ -7,7 +7,8 @@ import pybedtools
 
 def get_sequences(bed_file, genome):
     bed = pybedtools.BedTool(bed_file)
-    return bed.sequence(genome, s=True, name=True, fullHeader=True, split=True)
+    return bed.sequence(genome, s=True, name=True, fullHeader=False,
+                        split=True)
 
 
 def filter_sequences(fasta_file, min_length=100, fout=sys.stdout):

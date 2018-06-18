@@ -2,6 +2,7 @@ from __future__ import print_function
 import sys
 import os
 import os.path
+import re
 import argparse
 import tempfile
 
@@ -69,7 +70,7 @@ Output is in BED format plus additional gene symbol column
                           help="Ensembl gene identifier table")
     required.add_argument('-g', '--gencode_polya', dest="gencode_polya",
                           help="GENCODE poly(A) site track")
-    required.add_argument('-p', '--polyasite', dest="polyasite", 
+    required.add_argument('-p', '--polyasite', dest="polyasite",
                           help="PolyAsite database")
     optional.add_argument('-m', '--min_polyasite', dest="min_polyasite",
                           type=int, default=3,
@@ -94,8 +95,24 @@ Output is in BED format plus additional gene symbol column
                           help="Use this option to annotate 3' UTRs with a "
                           "custom BED file of poly(A) sites. This option "
                           "cannot be used in conjunction with -g and -p.")
+    optional.add_argument("-C", "--no_skip_random_chromosomes", default=True,
+                          action="store_true",
+                          help="Disable skiping of chromosomes that don't "
+                          "match the regular expression pattern "
+                          " '^(chr)*[0-9XY]+$'")
     optional.add_argument("-s", "--save", action='store_true',
-                          help="don't automatically delete intermediate files")
+                          help="Don't automatically delete intermediate files")
+    optional.add_argument("-H", "--no_header", action='store_true',
+                          help="Annotation table (genePred) has no header. "
+                          "Use this option if your input table was created "
+                          "using gtfToGenePred -genePredExt.")
+    optional.add_argument("-N", "--no_annotation", action='store_true',
+                          help="Skip annotation step. Use this option if you "
+                          "only have a gene model annotation file to build "
+                          "a 3' UTR library.")
+    optional.add_argument("--species", type=str,
+                          help="Set species. Useful if not using 'hg19' or "
+                          "'mm10', otherwise 'unk' is used.")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
 
@@ -163,12 +180,21 @@ Output is in BED format plus additional gene symbol column
                             args.other, args.annotation_file[0]], build_parser)
 
         if args.other is None and \
-            (args.gencode_polya is None or args.polyasite is None):
+            (args.gencode_polya is None or args.polyasite is None) and \
+            not args.no_annotation:
                 parser.error("Missing arguments: -g and/or -p")
 
         if args.other and (args.gencode_polya or args.polyasite):
             eprint("Option -o (custom BED) will be used for build phase and "
                    "-g and -p will be ignored")
+
+        if args.no_annotation:
+            eprint("Annotation step will be skipped")
+
+        if not (args.species is None or \
+                re.match(r'^[a-zA-Z0-9]+$', args.species)):
+            parser.error("Species must be alphanumeric.")
+
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
     elif args.subcommand == 'quant':
@@ -238,7 +264,7 @@ def quant(args):
         intermediate_name = args.save
 
     try:
-        cmd = "create_merged_data.R --ensembl {} -f {} -F {} {} > {}".format(
+        cmd = "create_merged_data.R --db {} -f {} -F {} {} > {}".format(
             args.db, args.field, args.format, " ".join(args.quant_files),
             intermediate_name)
         # eprint(cmd)

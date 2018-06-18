@@ -9,7 +9,6 @@ import pybedtools
 from pybedtools import featurefuncs
 import re
 
-
 def extend_feature(feature, length=24):
     """Extend the 3' end by length
     """
@@ -117,7 +116,7 @@ def main(args, input_filename, fout=sys.stdout):
         custom_mode = True
         custom = pybedtools.BedTool(args.other)
         sites = sort_bed(custom)
-    else:
+    elif not args.no_annotation:
         pas_filter = re.compile("(DS|TE)$")
         gencode = pybedtools.BedTool(args.gencode_polya)\
             .filter(lambda x: x.name == 'polyA_site')\
@@ -147,12 +146,16 @@ def main(args, input_filename, fout=sys.stdout):
     #   - Restore BED format with cut()
     #   - Use custom function to resolve overlapping features from groupby
 
-    overlap_utrs = utrs.intersect(sites, s=True, wa=True, wb=True)\
-                       .each(restore_feature)\
-                       .each(update_3prime,
-                             min_intermediate_pas=args.intermediate_polyasite,
-                             custom=custom_mode)\
-                       .saveas()
+    if args.no_annotation:
+        overlap_utrs = utrs.each(restore_feature)\
+                           .saveas()
+    else: 
+        overlap_utrs = utrs.intersect(sites, s=True, wa=True, wb=True)\
+                           .each(restore_feature)\
+                           .each(update_3prime,
+                                 min_intermediate_pas=args.intermediate_polyasite,
+                                 custom=custom_mode)\
+                           .saveas()
     overlap_utrs = sort_bed(overlap_utrs)\
         .groupby(g=[1, 2, 3, 6, 7, 8, 9], c=[4, 5, 10, 11],
                  o=['collapse'] * 4, delim="|")\

@@ -8,8 +8,13 @@ import pandas as pd
 
 
 class Row:
-    def __init__(self, row):
+    def __init__(self, row, no_header=False):
         l = row.rstrip().split("\t")
+        if no_header:
+            # add a dummy column in front of list to represent bin column in
+            # UCSC genePred tables
+            l.insert(0, "dummy")
+
         self.name = l[1]
         self.chrom = l[2]
         self.strand = l[3]
@@ -75,7 +80,7 @@ class Row:
         return self.utr3[1] - self.utr3[0]
 
     def is_on_random_chromosome(self):
-        return not re.match(r'chr[0-9XY]+$', self.chrom)
+        return not re.match(r'^(chr)*[0-9XY]+$', self.chrom)
 
     def get_block_sizes(self, n):
         sizes = [0] * n
@@ -120,18 +125,19 @@ def main(args, fout=sys.stdout):
     n = 0
     for row in fileinput.input(args.annotation_file[0],
                                openhook=fileinput.hook_compressed):
-        n = n + 1
-
-        if fileinput.isfirstline():
+        
+        if fileinput.isfirstline() and not args.no_header:
             continue
-
+        n = n + 1
+        
         if re.match(r"^#", row):
             c = c + 1
             continue
 
-        rowobj = Row(row)
+        rowobj = Row(row, args.no_header)
 
-        if rowobj.is_on_random_chromosome():
+        if not args.no_skip_random_chromosomes and \
+            rowobj.is_on_random_chromosome():
             c = c + 1
             continue
 
@@ -167,8 +173,8 @@ def main(args, fout=sys.stdout):
     fileinput.close()
     # conn.close()
     if float(c) / float(n) > 0.75:
-        print("Warning: More than 75% of entries skipped. Are you using the "
-              "correct database?", file=sys.stderr)
+        print("Warning: %d/%d (%0.2f%%) were skipped. Are you using the "
+              "correct database?" % (c, n, float(c)/float(n)), file=sys.stderr)
 
 
 if __name__ == '__main__':

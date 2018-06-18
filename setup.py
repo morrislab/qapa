@@ -4,8 +4,7 @@ from setuptools import find_packages
 from distutils.core import setup
 
 if sys.version_info[:2] < (2, 7):
-    sys.stderr.write("At least Python 2.7, or Python 3.5 or later "
-                     "is required\n")
+    sys.stderr.write("At least Python 2.7 or later is required\n")
     sys.exit(1)
 elif sys.version_info[0] == 3 and sys.version_info[:2] < (3, 5):
     sys.stderr.write("At least Python 3.5 or later is required.\n")
@@ -44,7 +43,6 @@ setup(name='qapa',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
-            'Topic :: Scientific/Engineering :: Bio-Informatics',
       ],
       zip_safe=False
       )
