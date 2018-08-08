@@ -2,7 +2,7 @@
 # complete poly(A) site coordinates from PolyAsite database and GENCODE poly(A)
 # site track
 
-#from __future__ import print_function
+from __future__ import print_function
 import sys
 import os
 import pybedtools
@@ -104,6 +104,23 @@ def sort_bed(bedobj):
     return pybedtools.BedTool(tmpbed)
 
 
+def validate(bedobj, filename):
+    """
+    Validate the input BED file using solution from
+    https://github.com/daler/pybedtools/issues/252
+    """
+    try:
+        ft = bedobj.file_type
+        if ft == 'empty':
+            print("[annotate] BED file %s is empty!" % filename,
+                  file=sys.stderr)
+            sys.exit(1)
+    except IndexError:
+        print("[annotate] Error reading the BED file %s." % filename +
+              " Is the file properly formatted?", file=sys.stderr)
+        sys.exit(1)
+
+
 def main(args, input_filename, fout=sys.stdout):
 
     # Load intervals
@@ -115,16 +132,19 @@ def main(args, input_filename, fout=sys.stdout):
     if args.other:
         custom_mode = True
         custom = pybedtools.BedTool(args.other)
+        validate(custom, args.other)
         sites = sort_bed(custom)
     elif not args.no_annotation:
         pas_filter = re.compile("(DS|TE)$")
         gencode = pybedtools.BedTool(args.gencode_polya)\
             .filter(lambda x: x.name == 'polyA_site')\
             .saveas()
+        validate(gencode, args.gencode_polya)
         polyasite = pybedtools.BedTool(args.polyasite)\
             .cut(range(0, 6))\
             .filter(lambda x: int(x.score) >= args.min_polyasite)\
             .saveas()
+        validate(polyasite, args.polyasite)
         polyasite = sort_bed(polyasite)
 
         polyasite_te = polyasite\

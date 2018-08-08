@@ -213,6 +213,7 @@ def build(args):
                                       delete=False)
     tf3 = tempfile.NamedTemporaryFile(mode='w', prefix='qapa_extend_',
                                       delete=False)
+
     try:
         # 1) get last exon from table
         eprint("Extracting 3' UTRs from table")
@@ -281,7 +282,9 @@ def quant(args):
 
 def main():
     args = getoptions()
+    eprint("Version %s" % __version__)
     args.func(args)
+    eprint("Finished!")
 
 
 if __name__ == '__main__':

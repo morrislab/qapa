@@ -66,7 +66,8 @@ class Interval:
             return 'mm10'
         elif species is not None:
             return species
-        warnings.warn('Could not guess species from gene name!', Warning)
+        warnings.warn('Could not guess species from gene name!' +
+            ' To disable this warning, use --species option', Warning)
         return 'unk'
 
 
