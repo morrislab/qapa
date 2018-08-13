@@ -3,8 +3,8 @@
 Analysis of alternative polyadenylation (APA) from RNA-seq
 data (human and mouse). QAPA consists of two main components:
 
-  1. Extraction and annotation of 3$'$ UTR sequences from gene models
-  1. Calculation of relative usage of alternative 3$'$ UTR isoforms based on
+  1. Extraction and annotation of 3′ UTR sequences from gene models
+  1. Calculation of relative usage of alternative 3′ UTR isoforms based on
      transcript-level abundance.
 
 Note that QAPA itself does not perform transcript quantification. It relies on
@@ -59,14 +59,14 @@ QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
 
 QAPA has three sub-commands: 
 
-  1. [`build`](#building-3-utrs-from-annotation-build): Generate a 3$'$ UTR
+  1. [`build`](#building-3-utrs-from-annotation-build): Generate a 3′ UTR
      library from annotations
   2. [`fasta`](#extracting-3-utr-sequences-fasta): Extract sequences for
      indexing by transcript quantification tools
   3. [`quant`](#quantifying-3-utr-isoform-usage-quant): Calculate relative 
-     usage of alternative 3$'$ UTR isoforms
+     usage of alternative 3′ UTR isoforms
 
-## Build 3$'$ UTRs from annotation (`build`)
+## Build 3′ UTRs from annotation (`build`)
 
 ### Prepare annotation files
 
@@ -141,7 +141,7 @@ Option 1: standard approach using PolyASite and GENCODE poly(A) track (as descri
 
 Option 2: use custom BED track of poly(A) sites
 
-A custom BED file of poly(A) sites can be used to annotate 3$'$ UTRs.
+A custom BED file of poly(A) sites can be used to annotate 3′ UTRs.
 Each entry must contain the start (0-based) and end coordinate of a poly(A)
 site.
 
@@ -150,7 +150,7 @@ site.
 Once the data files have been prepared, we can then use `build` to create the 3'
 UTR library. The following describes several example use cases:
 
-To extract 3$'$ UTRs from annotation, run:
+To extract 3′ UTRs from annotation, run:
 
     qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed 
         gencode.basic.txt > output_utrs.bed
@@ -174,7 +174,7 @@ Results will be saved in the file `output_utrs.bed` (default is STDOUT).
 It is important that the sequence IDs are not modified as it will be parsed by
 `quant` below. 
 
-## Extract 3$'$ UTR sequences (`fasta`)
+## Extract 3′ UTR sequences (`fasta`)
 
 To extract sequences from the BED file prepared by `build`, a reference genome in
 FASTA format is required. e.g. http://hgdownload.soe.ucsc.edu/downloads.html. 
@@ -187,9 +187,9 @@ Essentially `fasta` is a wrapper that calls `bedtools getfasta`. Note that
 `genome.fa` must be uncompressed. Sequences will be saved in
 `output_sequences.fa`. 
 
-## Quantify 3$'$ UTR isoform usage (`quant`)
+## Quantify 3′ UTR isoform usage (`quant`)
 
-Expression quantification of 3$'$ UTR isoforms must be carried out first using the
+Expression quantification of 3′ UTR isoforms must be carried out first using the
 FASTA file prepared by `fasta` as the index. For example, to index the sequences
 using Salmon:
     
@@ -229,9 +229,9 @@ Chr | chromosome
 LastExon.Start | start coordinate of last exon
 LastExon.End | end coordinate of last exon
 Strand | + or -
-UTR3.Start | start coordinate of 3$'$ UTR
-UTR3.End | end coordinate of 3$'$ UTR
-Length | length of the 3$'$ UTR
+UTR3.Start | start coordinate of 3′ UTR
+UTR3.End | end coordinate of 3′ UTR
+Length | length of the 3′ UTR
 Num_Events | number of PAS per gene
 *sample1*.PAU | PAU estimate for *sample1*
 *sample2*.PAU | PAU estimate for *sample2*
