@@ -15,7 +15,11 @@ other tools such as [Sailfish](https://github.com/kingsfordgroup/sailfish) and
 
 # Installation
 
-QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
+QAPA consists of both Python (2.7+ or 3.5+) and R scripts. To install QAPA in a
+conda virtual environment, skip to the **[Conda virtual
+environment](#conda-virtual-environment)** section below.
+
+## Manual installation 
 
 1. Install the following software pre-requisites:
     1. [bedtools](https://github.com/arq5x/bedtools2). *Note: do not use 2.26.0
@@ -54,6 +58,21 @@ QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
         cd          # change to root directory
         which qapa  # should return path of qapa executable
         qapa -h     # should display help message
+
+## Conda virtual environment
+
+If [Anaconda](https://www.anaconda.com/distrubtion/) is already
+installed, a conda virtual environment for QAPA can be created using the
+provided `environment.yml` file:
+
+    git clone https://github.com/morrislab/qapa.git
+    cd qapa
+    conda env create -f environment.yml
+
+To complete the installation, activate the environment and execute `setup.py`:
+
+    source activate qapa
+    python setup.py install
 
 # Usage
 

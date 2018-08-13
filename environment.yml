@@ -1,0 +1,16 @@
+name: qapa
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3
+  - pandas>=0.17
+  - numpy>=1.10
+  - bedtools=2.27.1
+  - pybedtools>=0.7
+  - biopython>=1.66
+  - r>=3.4
+  - r-dplyr>=0.7
+  - r-optparse
+  - r-data.table
+  - r-stringr
