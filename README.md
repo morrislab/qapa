@@ -59,11 +59,11 @@ QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
 
 QAPA has three sub-commands: 
 
-  1. [`build`](#building-3-utrs-from-annotation-build): Generate a 3′ UTR
+  1. [`build`](#build-3-utrs-from-annotation-build): Generate a 3′ UTR
      library from annotations
-  2. [`fasta`](#extracting-3-utr-sequences-fasta): Extract sequences for
+  2. [`fasta`](#extract-3-utr-sequences-fasta): Extract sequences for
      indexing by transcript quantification tools
-  3. [`quant`](#quantifying-3-utr-isoform-usage-quant): Calculate relative 
+  3. [`quant`](#quantify-3-utr-isoform-usage-quant): Calculate relative 
      usage of alternative 3′ UTR isoforms
 
 ## Build 3′ UTRs from annotation (`build`)
