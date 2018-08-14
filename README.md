@@ -95,10 +95,10 @@ To run `build`, gene and poly(A) annotation sources need to be prepared:
    Alternatively, download via MySQL (see
    [here](http://www.ensembl.org/info/data/mysql.html) for more details):
 
-        mysql --user=anonymous --host=martdb.ensembl.org --port=5316 -A ensembl_mart_89
-            -e "select stable_id_1023 as 'Gene stable ID', stable_id_1066 as 'Transcript
-            stable ID', biotype_1020 as 'Gene type', biotype_1064 as 'Transcript type',
-            display_label_1074 as 'Gene name' from mmusculus_gene_ensembl__transcript__main"
+        mysql --user=anonymous --host=martdb.ensembl.org --port=5316 -A ensembl_mart_89 \
+            -e "select stable_id_1023 as 'Gene stable ID', stable_id_1066 as 'Transcript stable ID', \
+            biotype_1020 as 'Gene type', biotype_1064 as 'Transcript type', \
+            display_label_1074 as 'Gene name' from mmusculus_gene_ensembl__transcript__main" \
             > ensembl_identifiers.txt
 
    To change the species, replace the table name (e.g. for human, use
@@ -111,8 +111,8 @@ To run `build`, gene and poly(A) annotation sources need to be prepared:
    [here](https://genome.ucsc.edu/goldenpath/help/mysql.html) for more details).
    For example, to download mm10 gene predictions:
 
-        mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A -e "select * from
-            wgEncodeGencodeBasicVM9" mm10 > gencode.basic.txt
+        mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A \
+            -e "select * from wgEncodeGencodeBasicVM9" mm10 > gencode.basic.txt
 
    Alternatively, if you are starting from a GTF/GFF file, you can convert
    it to genePred format using the UCSC tool
@@ -135,9 +135,10 @@ Option 1: standard approach using PolyASite and GENCODE poly(A) track (as descri
    Download from [UCSC Table Browser](https://genome.ucsc.edu/cgi-bin/hgTables)
    or alternatively via MySQL. For example, to download mm10 annotations:
 
-        mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A -e "select chrom, txStart,
-        txEnd, name2, score, strand from wgEncodeGencodePolyaVM9 where name2 =
-        'polyA_site'" -N mm10 > gencode.polyA_sites.bed
+        mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A \
+            -e "select chrom, txStart, txEnd, name2, score, strand \
+            from wgEncodeGencodePolyaVM9 where name2 = 'polyA_site'" -N mm10 \
+            > gencode.polyA_sites.bed
 
 Option 2: use custom BED track of poly(A) sites
 
@@ -152,19 +153,16 @@ UTR library. The following describes several example use cases:
 
 To extract 3′ UTRs from annotation, run:
 
-    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed 
-        gencode.basic.txt > output_utrs.bed
+    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
 
 If using a custom BED file, replace the `-g` and `-p` options with `-o`:
 
-    qapa build --db ensembl_identifiers.txt -o custom_sites.bed
-        gencode.basic.txt > output_utrs.bed
+    qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
 
 If using a custom genePred file converted from GTF, include the `-H`
 option:
 
-    qapa build -H --db ensembl_identifiers.txt -o custom_sites.bed
-        custom_genes.genePred > output_utrs.bed
+    qapa build -H --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
  
 If bypassing the poly(A) annotation step, include the `-N` option:
 
