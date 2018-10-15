@@ -97,9 +97,9 @@ Output is in BED format plus additional gene symbol column
                           "cannot be used in conjunction with -g and -p.")
     optional.add_argument("-C", "--no_skip_random_chromosomes", default=True,
                           action="store_true",
-                          help="Disable skiping of chromosomes that don't "
+                          help="Disable skipping of chromosomes that don't "
                           "match the regular expression pattern "
-                          " '^(chr)*[0-9XY]+$'")
+                          " '^(chr)*[0-9XYM]+$'")
     optional.add_argument("-s", "--save", action='store_true',
                           help="Don't automatically delete intermediate files")
     optional.add_argument("-H", "--no_header", action='store_true',

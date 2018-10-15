@@ -80,7 +80,7 @@ class Row:
         return self.utr3[1] - self.utr3[0]
 
     def is_on_random_chromosome(self):
-        return not re.match(r'^(chr)*[0-9XY]+$', self.chrom)
+        return not re.match(r'^(chr)*[0-9XYM]+$', self.chrom)
 
     def get_block_sizes(self, n):
         sizes = [0] * n
@@ -129,9 +129,10 @@ def main(args, fout=sys.stdout):
         if fileinput.isfirstline() and not args.no_header:
             continue
         n = n + 1
-        
+        #pdb.set_trace()
+        row = row.decode()
         if re.match(r"^#", row):
-            c = c + 1
+            #   c = c + 1
             continue
 
         rowobj = Row(row, args.no_header)
