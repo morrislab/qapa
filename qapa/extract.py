@@ -130,7 +130,9 @@ def main(args, fout=sys.stdout):
             continue
         n = n + 1
         #pdb.set_trace()
-        row = row.decode()
+        if type(row) == "bytes":
+            row = row.decode()
+
         if re.match(r"^#", row):
             #   c = c + 1
             continue
