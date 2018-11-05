@@ -5,6 +5,7 @@ import fileinput
 import numpy as np
 import pandas as pd
 # import sqlite3
+import pdb
 
 
 class Row:
@@ -130,8 +131,10 @@ def main(args, fout=sys.stdout):
             continue
         n = n + 1
         #pdb.set_trace()
-        if type(row) == "bytes":
+        try:
             row = row.decode()
+        except AttributeError:
+            pass
 
         if re.match(r"^#", row):
             #   c = c + 1
