@@ -1,11 +1,12 @@
 from __future__ import print_function
 import re
 import sys
+import warnings
 import fileinput
 import numpy as np
 import pandas as pd
 # import sqlite3
-import pdb
+#import pdb
 
 
 class Row:
@@ -83,6 +84,9 @@ class Row:
     def is_on_random_chromosome(self):
         return not re.match(r'^(chr)*[0-9XYM]+$', self.chrom)
 
+    def chromosome_contains_underscore(self):
+        return re.search(r'_', self.chrom)
+
     def get_block_sizes(self, n):
         sizes = [0] * n
         for i in range(0, n):
@@ -147,6 +151,12 @@ def main(args, fout=sys.stdout):
             c = c + 1
             continue
 
+        if rowobj.chromosome_contains_underscore():
+            warnings.warn("Skipping %s as chromosome %s contains "
+                          "underscores." % (rowobj.name, rowobj.chrom),
+                          Warning)
+            continue
+
         # filter for only protein-coding genes
         # result = conn.execute(query, (rowobj.get_stripped_name(),))
         # result = result.fetchone()
@@ -179,8 +189,8 @@ def main(args, fout=sys.stdout):
     fileinput.close()
     # conn.close()
     if float(c) / float(n) > 0.75:
-        print("Warning: %d/%d (%0.2f%%) were skipped. Are you using the "
-              "correct database?" % (c, n, float(c)/float(n)), file=sys.stderr)
+        warnings.warn("%d/%d (%0.2f%%) were skipped. Are you using the "
+              "correct database?" % (c, n, float(c)/float(n)), Warning)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ import re
 import pandas as pd
 import numpy as np
 import warnings
-
+from . import qapa
 
 class Interval:
     def __init__(self, l, sp=None):
@@ -116,7 +116,7 @@ def merge_bed(args, inputfile):
     df = df[df.utr_length > 0]
 
     # Sort by three prime coordinate
-    print("Sorting data frame by 3' end", file=sys.stderr)
+    qapa.eprint("Sorting data frame by 3' end")
     df['three_prime'] = np.where(df['strand'] == '+', df['end'], df['start'])
     df = df.sort_values(['strand', 'seqnames', 'three_prime'])
 
@@ -124,7 +124,7 @@ def merge_bed(args, inputfile):
     collapsed_three_prime = []
     overlap_diff_genes = set()
 
-    print("Iterating and merging intervals by 3' end", file=sys.stderr)
+    qapa.eprint("Iterating and merging intervals by 3' end")
     for index, line in df.iterrows():
         my_interval = Interval(line, args.species)
 
@@ -157,7 +157,7 @@ def merge_bed(args, inputfile):
     three_prime_df = \
         three_prime_df[~three_prime_df['gene_id'].isin(overlap_diff_genes)]
 
-    print("Updating 5' end for each gene", file=sys.stderr)
+    qapa.eprint("Updating 5' end for each gene")
 
     # Filter by forward and reverse strand
     forward = three_prime_df[three_prime_df.strand == '+']
