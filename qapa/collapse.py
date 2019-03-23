@@ -2,13 +2,16 @@
 # 3' ends.
 # BED file must be sorted by 3' coordinate, strand, followed by start
 # coordinate.
+
 from __future__ import print_function
 import sys
 import re
 import pandas as pd
 import numpy as np
 import warnings
-from . import qapa
+from . import utils
+
+_TAG = 'collapse' 
 
 class Interval:
     def __init__(self, l, sp=None):
@@ -116,7 +119,7 @@ def merge_bed(args, inputfile):
     df = df[df.utr_length > 0]
 
     # Sort by three prime coordinate
-    qapa.eprint("Sorting data frame by 3' end")
+    utils.eprint("Sorting data frame by 3' end", tag=_TAG)
     df['three_prime'] = np.where(df['strand'] == '+', df['end'], df['start'])
     df = df.sort_values(['strand', 'seqnames', 'three_prime'])
 
@@ -124,7 +127,7 @@ def merge_bed(args, inputfile):
     collapsed_three_prime = []
     overlap_diff_genes = set()
 
-    qapa.eprint("Iterating and merging intervals by 3' end")
+    utils.eprint("Iterating and merging intervals by 3' end", tag=_TAG)
     for index, line in df.iterrows():
         my_interval = Interval(line, args.species)
 
@@ -157,7 +160,7 @@ def merge_bed(args, inputfile):
     three_prime_df = \
         three_prime_df[~three_prime_df['gene_id'].isin(overlap_diff_genes)]
 
-    qapa.eprint("Updating 5' end for each gene")
+    utils.eprint("Updating 5' end for each gene", tag=_TAG)
 
     # Filter by forward and reverse strand
     forward = three_prime_df[three_prime_df.strand == '+']

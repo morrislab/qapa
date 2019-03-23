@@ -6,7 +6,6 @@ import fileinput
 import numpy as np
 import pandas as pd
 # import sqlite3
-#import pdb
 
 
 class Row:
@@ -126,6 +125,8 @@ def main(args, fout=sys.stdout):
                         'Transcript type']].drop_duplicates()
     conn = conn.set_index(['Transcript stable ID'])
 
+    max_warnings = 10
+    w = 0
     c = 0
     n = 0
     for row in fileinput.input(args.annotation_file[0],
@@ -152,9 +153,13 @@ def main(args, fout=sys.stdout):
             continue
 
         if rowobj.chromosome_contains_underscore():
-            warnings.warn("Skipping %s as chromosome %s contains "
-                          "underscores." % (rowobj.name, rowobj.chrom),
-                          Warning)
+            w = w + 1
+            if w == max_warnings:
+                warnings.warn("Suppressing chromosome warnings...", Warning)
+            elif w < max_warnings:
+                warnings.warn("Skipping %s as chromosome %s contains "
+                              "underscores." % (rowobj.name, rowobj.chrom),
+                              Warning)
             continue
 
         # filter for only protein-coding genes
