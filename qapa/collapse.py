@@ -9,7 +9,12 @@ import re
 import pandas as pd
 import numpy as np
 import warnings
-from . import utils
+import logging
+
+logging.basicConfig(level=logging.INFO, stream=sys.stderr,
+                    format='%(asctime)s - %(levelname)-8s - %(message)s')
+logger = logging.getLogger('collapse')
+logging.captureWarnings(True)
 
 _TAG = 'collapse' 
 
@@ -119,7 +124,7 @@ def merge_bed(args, inputfile):
     df = df[df.utr_length > 0]
 
     # Sort by three prime coordinate
-    utils.eprint("Sorting data frame by 3' end", tag=_TAG)
+    logger.info("Sorting data frame by 3' end", tag=_TAG)
     df['three_prime'] = np.where(df['strand'] == '+', df['end'], df['start'])
     df = df.sort_values(['strand', 'seqnames', 'three_prime'])
 
@@ -127,7 +132,7 @@ def merge_bed(args, inputfile):
     collapsed_three_prime = []
     overlap_diff_genes = set()
 
-    utils.eprint("Iterating and merging intervals by 3' end", tag=_TAG)
+    logger.info("Iterating and merging intervals by 3' end", tag=_TAG)
     for index, line in df.iterrows():
         my_interval = Interval(line, args.species)
 
@@ -160,7 +165,7 @@ def merge_bed(args, inputfile):
     three_prime_df = \
         three_prime_df[~three_prime_df['gene_id'].isin(overlap_diff_genes)]
 
-    utils.eprint("Updating 5' end for each gene", tag=_TAG)
+    logger.info("Updating 5' end for each gene", tag=_TAG)
 
     # Filter by forward and reverse strand
     forward = three_prime_df[three_prime_df.strand == '+']

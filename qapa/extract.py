@@ -5,10 +5,16 @@ import warnings
 import fileinput
 import numpy as np
 import pandas as pd
+import logging
 # import sqlite3
 from . import utils
 
 _TAG = 'extract'
+
+logging.basicConfig(level=logging.INFO, stream=sys.stderr,
+                    format='%(asctime)s - %(levelname)-8s - %(message)s')
+logger = logging.getLogger('extract')
+logging.captureWarnings(True)
 
 class Row:
     def __init__(self, row, no_header=False):
