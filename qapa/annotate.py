@@ -8,6 +8,10 @@ import os
 import pybedtools
 from pybedtools import featurefuncs
 import re
+from . import utils
+
+_TAG = 'annotate'
+
 
 def extend_feature(feature, length=24):
     """Extend the 3' end by length
@@ -119,12 +123,11 @@ def validate(bedobj, filename):
     try:
         ft = bedobj.file_type
         if ft == 'empty':
-            print("[annotate] BED file %s is empty!" % filename,
-                  file=sys.stderr)
+            utils.eprint("BED file %s is empty!" % filename, tag=_TAG)
             sys.exit(1)
-    except IndexError:
-        print("[annotate] Error reading the BED file %s." % filename +
-              " Is the file properly formatted?", file=sys.stderr)
+    except IndexError as err:
+        utils.eprint("%s. Error reading the BED file %s." % (err, filename) +
+                     " Is the file properly formatted?", tag=_TAG)
         sys.exit(1)
 
 
