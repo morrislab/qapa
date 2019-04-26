@@ -37,6 +37,12 @@ class RowTestCase(unittest.TestCase):
         self.assertEqual(target[2], 74036494, "End coord not equal")
 
 
+    def test_invalid_gene_pre(self):
+        my_row = '143   ENSMUST00000100750.9    chrY    -   74026591    74085669    74035416    74079934    4   74026591,74036981,74079908,74085509,    74036494,74037332,74080032,74085669,'
+        with self.assertRaises(ValueError):
+            ex.Row(my_row)
+
+
 if __name__ == '__main__':
     #print sys.argv[0]
     unittest.main()
