@@ -6,7 +6,9 @@ import fileinput
 import numpy as np
 import pandas as pd
 # import sqlite3
+from . import utils
 
+_TAG = 'extract'
 
 class Row:
     def __init__(self, row, no_header=False):
@@ -15,6 +17,9 @@ class Row:
             # add a dummy column in front of list to represent bin column in
             # UCSC genePred tables
             l.insert(0, "dummy")
+        if len(l) < 13:
+            raise ValueError("Insufficient number of columns in gene"
+                             " prediction file.")
 
         self.name = l[1]
         self.chrom = l[2]
@@ -23,10 +28,10 @@ class Row:
         self.txEnd = int(l[5])
         self.cdsStart = int(l[6])
         self.cdsEnd = int(l[7])
-        self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",") if _f]]
-        self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",") if _f]]
-        #self.exonStarts = [int(x) for x in filter(None, l[9].split(","))]
-        #self.exonEnds = [int(x) for x in filter(None, l[10].split(","))]
+        self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",")
+                        if _f]]
+        self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",")
+                                if _f]]
         self.name2 = l[12]
 
         self.utr3 = [self.cdsEnd, self.txEnd]
@@ -135,7 +140,7 @@ def main(args, fout=sys.stdout):
         if fileinput.isfirstline() and not args.no_header:
             continue
         n = n + 1
-        #pdb.set_trace()
+
         try:
             row = row.decode()
         except AttributeError:
