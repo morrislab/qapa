@@ -178,7 +178,8 @@ add_ensembl_metadata <- function(df, dbfile, all_genes = FALSE,
   # df - merged_data frame
   # dbfile - path of Ensembl metadata file
 
-  db <- read.table(dbfile, header = TRUE, sep = "\t", stringsAsFactors=FALSE) %>%
+  db <- read.table(dbfile, header = TRUE, sep = "\t", stringsAsFactors = FALSE, 
+                   quote = NULL) %>%
     data.table()
 
   df[, tid := extract_one_transcript(Transcript)]
@@ -199,10 +200,16 @@ add_ensembl_metadata <- function(df, dbfile, all_genes = FALSE,
   df[, tid := NULL]
 
   c <- length(which(!is.na(df$Gene_Name)))
-  pc <- paste0("(", round(c / nrow(df)*100, digits=7), "%)")
-  write(paste("Found", c, "/", nrow(df), pc, "matches"), stderr())
+  pct <- c/nrow(df)*100
+  write(sprintf("Found %d/%d (%0.2f%%) matches", c, nrow(df), pct), stderr())
   if (c == 0) {
     warning("No annotation matches were found. Are you using the correct database?")
+  }
+  if (pct < 90.0) {
+    warning("A large proportion of events could not be matched to the annotation.",
+            " This could suggest a possible issue with the database used.",
+            " In a typical run, all of the events have a match since",
+            " the 3' UTR library should have been built using the same database file.")
   }
   if (!non_standard) {
     meta_cols <- c("Transcript", "Gene", "Gene_Name", "Chr",
