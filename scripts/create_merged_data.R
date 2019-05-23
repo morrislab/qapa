@@ -91,11 +91,11 @@ load_data <- function(path, format, field) {
         stop(sprintf("The specified field (%s) cannot be found!", field))
       }
 
-      m <- read.table(path, sep="\t", check.names = FALSE,
+      m <- read.table(path, sep="\t", check.names = FALSE, quote = NULL,
                       stringsAsFactors=FALSE, col.names = column.names)
       m <- data.table(m[,c(1,2, which(colnames(m) == field))])
     } else {
-      m <- read.table(path, sep="\t", check.names = FALSE,
+      m <- read.table(path, sep="\t", check.names = FALSE, quote = NULL,
                       header = TRUE, stringsAsFactors=FALSE)
       if (! field %in% colnames(m)) {
         stop("The specified field cannot be found!")
