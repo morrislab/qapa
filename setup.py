@@ -6,6 +6,9 @@ from distutils.core import setup
 if sys.version_info[:2] < (2, 7):
     sys.stderr.write("At least Python 2.7 or later is required\n")
     sys.exit(1)
+elif sys.version_info[:1] == (2,):
+    sys.stderr.write(
+        "Please consider upgrading to Python 3 as Python 2.7 End of Life is in 2020.")
 elif sys.version_info[0] == 3 and sys.version_info[:2] < (3, 5):
     sys.stderr.write("At least Python 3.5 or later is required.\n")
     sys.exit(1)
@@ -29,20 +32,20 @@ setup(name='qapa',
                         'biopython >= 1.66',
                         'pybedtools >= 0.7.9'],
       entry_points={
-            'console_scripts': [
-                'qapa = qapa.qapa:main'
-            ]
+          'console_scripts': [
+              'qapa = qapa.qapa:main'
+          ]
       },
       classifiers=[
-            'Development Status :: 4 - Beta',
-            'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-            'Topic :: Scientific/Engineering :: Bio-Informatics',
-            'Programming Language :: Python',
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.5',
+          'Development Status :: 4 - Beta',
+          'Intended Audience :: Science/Research',
+          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'Topic :: Scientific/Engineering :: Bio-Informatics',
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.5',
       ],
       zip_safe=False
       )
