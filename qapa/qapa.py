@@ -5,6 +5,7 @@ import os.path
 import re
 import argparse
 import tempfile
+from tqdm import tqdm
 
 from . import extract
 from . import annotate
@@ -212,31 +213,36 @@ def build(args):
                                       delete=False)
 
     try:
-        # 1) get last exon from table
-        utils.eprint("Extracting 3' UTRs from table")
-        extract.main(args, tf1)
-        # utils.eprint(tf1.name)
-        tf1.close()
+        with tqdm(total=4, unit="step", desc="build") as pbar:
+            # 1) get last exon from table
+            utils.eprint("Extracting 3' UTRs from table")
+            extract.main(args, tf1)
+            # utils.eprint(tf1.name)
+            tf1.close()
+            pbar.update(1)
 
-        # 2) annotate 3' ends
-        utils.eprint("Annotating 3' UTRs")
-        annotate.main(args, tf1.name, tf2)
-        # utils.eprint(tf2.name)
-        tf2.close()
+            # 2) annotate 3' ends
+            utils.eprint("Annotating 3' UTRs")
+            annotate.main(args, tf1.name, tf2)
+            # utils.eprint(tf2.name)
+            tf2.close()
+            pbar.update(2)
 
-        # 3) extend 5'
-        utils.eprint("Checking 5' ends")
-        result = extend.main(args, tf2.name)
-        result.to_csv(tf3, sep="\t", index=False, header=True)
-        # utils.eprint(tf3.name)
-        tf3.close()
+            # 3) extend 5'
+            utils.eprint("Checking 5' ends")
+            result = extend.main(args, tf2.name)
+            result.to_csv(tf3, sep="\t", index=False, header=True)
+            # utils.eprint(tf3.name)
+            tf3.close()
+            pbar.update(3)
 
-        # # 4) collapse 3' ends
-        utils.eprint("Collapsing 3' ends")
-        # fout = open(args.output_file[0], 'w')
-        result = collapse.merge_bed(args, tf3.name)
-        result.to_csv(sys.stdout, sep="\t", index=False, header=False)
-        # fout.close()
+            # # 4) collapse 3' ends
+            utils.eprint("Collapsing 3' ends")
+            # fout = open(args.output_file[0], 'w')
+            result = collapse.merge_bed(args, tf3.name)
+            result.to_csv(sys.stdout, sep="\t", index=False, header=False)
+            # fout.close()
+            pbar.update(4)
     except Exception as e:
         utils.eprint("Error: {}".format(e))
     finally:

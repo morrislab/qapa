@@ -13,6 +13,7 @@
 
 import sys
 import pandas as pd
+from tqdm import tqdm
 
 
 def is_plus(strands):
@@ -141,7 +142,7 @@ def main(args, input_filename):
 
     # Process each group
     newdf = []
-    for name2, group in df.groupby('name2'):
+    for name2, group in tqdm(df.groupby('name2'), desc="extend"):
         newdf.append(extend_5prime(group, args.numextends))
     return pd.concat(newdf).sort_values(['seqnames', 'start'])
 
