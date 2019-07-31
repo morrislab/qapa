@@ -1,6 +1,7 @@
 import unittest
 import sys
 from qapa import extract as ex
+from qapa.extract import get_stripped_name
 
 class RowTestCase(unittest.TestCase):
 
@@ -42,6 +43,15 @@ class RowTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             ex.Row(my_row)
 
+    def test_get_stripped_name(self):
+        target = get_stripped_name(self.row.name)
+        self.assertEqual(target, "ENSMUST00000100750")
+
+        target = get_stripped_name("ENST00000100750.11")
+        self.assertEqual(target, "ENST00000100750")
+
+        target = get_stripped_name("ENSRNOT00000100750.11")
+        self.assertEqual(target, "ENSRNOT00000100750")
 
 if __name__ == '__main__':
     #print sys.argv[0]

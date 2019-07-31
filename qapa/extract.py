@@ -43,7 +43,7 @@ class Row:
 
     def extract_last_exon(self, n=1, min_utr_length=0):
         bed = None
-        name = self.get_stripped_name() + "_" + self.name2
+        name = self._join_names()
 
         if not self.has_intron_in_3utr and \
                 self.get_3utr_length() >= min_utr_length:
@@ -68,7 +68,7 @@ class Row:
 
     def extract_3utr(self, min_utr_length=0):
         bed = None
-        name = self.get_stripped_name() + "_" + self.name2
+        name = self._join_names()
 
         if not self.has_intron_in_3utr and \
                 self.get_3utr_length() >= min_utr_length:
@@ -106,13 +106,16 @@ class Row:
                              for x in self.exonStarts[-n:]])
         return ",".join([str(x - self.txStart) for x in self.exonStarts[0:n]])
 
-    def get_stripped_name(self):
-        # If Gencode tables are supplied, the Ensembl transcript ID has a
-        # version number appended to the ID. We want to strip this out.
-        if re.match('^ENS(MUS)*T', self.name):
-            m = re.match('^ENS(MUS)*T\d+', self.name)
-            return m.group()
-        return self.name
+    def _join_names(self):
+        return get_stripped_name(self.name) + "_" + get_stripped_name(self.name2)
+
+def get_stripped_name(name):
+    # If Gencode tables are supplied, the Ensembl transcript ID has a
+    # version number appended to the ID. We want to strip this out.
+    if re.match('^ENS\w*T', name):
+        m = re.match('^ENS\w*T\d+', name)
+        return m.group()
+    return name
 
 
 def main(args, fout=sys.stdout):
@@ -178,7 +181,7 @@ def main(args, fout=sys.stdout):
 
         # filter for only protein-coding genes
         try:
-            result = conn.loc[rowobj.get_stripped_name()]
+            result = conn.loc[get_stripped_name(rowobj.name)]
             if isinstance(result, pd.DataFrame):
                 result = result.iloc[0, ]
             if not (result['Gene type'] == "protein_coding" and
