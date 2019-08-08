@@ -109,8 +109,11 @@ Output is in BED format plus additional gene symbol column
                           "only have a gene model annotation file to build "
                           "a 3' UTR library.")
     optional.add_argument("--species", type=str,
-                          help="Set species. Useful if not using 'hg19' or "
+                          help="Set species descriptor. Useful if not using 'hg19' or "
                           "'mm10', otherwise 'unk' is used.")
+    optional.add_argument("-c", "--cores", type=int,
+                          help="Set the number of cores for multiprocessing. "
+                          "Defaults to using all available cores.")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
 

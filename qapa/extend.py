@@ -142,8 +142,15 @@ def main(args, input_filename):
 
     # Process each group
     newdf = []
-    for name2, group in tqdm(df.groupby('name2'), desc="extend"):
-        newdf.append(extend_5prime(group, args.numextends))
+
+    from multiprocessing import Pool
+    from itertools import repeat
+
+    with Pool(args.cores) as pool:
+        newdf = pool.starmap(extend_5prime, zip([group for _, group in df.groupby('name2')], repeat(args.numextends)))
+    # for name2, group in tqdm(df.groupby('name2'), desc="extend"):
+    #     newdf.append(extend_5prime(group, args.numextends))
+
     return pd.concat(newdf).sort_values(['seqnames', 'start'])
 
 
