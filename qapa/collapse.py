@@ -64,9 +64,9 @@ class Interval:
 
     def _guess_species(self, species=None):
         if re.match(r'ENST\d+', self.name):
-            return 'hg19'
+            return 'hsa'
         elif re.match(r'ENSMUST\d+', self.name):
-            return 'mm10'
+            return 'mmu'
         elif species is not None:
             return species
         warnings.warn('Could not guess species from gene name!' +
