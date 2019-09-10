@@ -151,14 +151,22 @@ def main(args, input_filename, fout=sys.stdout):
             .saveas()
         validate(gencode, args.gencode_polya)
         polyasite = pybedtools.BedTool(args.polyasite)\
-            .cut(range(0, 6))\
             .filter(lambda x: int(x.score) >= args.min_polyasite)\
             .saveas()
         validate(polyasite, args.polyasite)
         polyasite = sort_bed(polyasite)
 
+        is_polyasite_v2 = polyasite.field_count == 11 
+
+        if is_polyasite_v2:
+            utils.eprint("Detected PolyASite version 2")
+            field_index = 9
+        else:
+            utils.eprint("Detected PolyASite version 1")
+            field_index = 3
         polyasite_te = polyasite\
-            .filter(lambda x: pas_filter.search(x.name))\
+            .filter(lambda x: pas_filter.search(x[field_index]))\
+            .cut(range(0, 6))\
             .saveas()
         sites = gencode.cat(polyasite_te, postmerge=False)
 
