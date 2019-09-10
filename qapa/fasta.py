@@ -5,9 +5,7 @@ from Bio import SeqIO
 import pybedtools
 import logging
 
-logging.basicConfig(level=logging.INFO, stream=sys.stderr,
-                    format='%(asctime)s - %(levelname)-8s - %(message)s')
-logger = logging.getLogger('fasta')
+logger = logging.getLogger(__name__)
 logging.captureWarnings(True)
 
 

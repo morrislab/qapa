@@ -17,7 +17,7 @@ from .version import __version__
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr,
                     format='[%(name)s] %(asctime)s - %(levelname)-8s - %(message)s')
-logger = logging.getLogger('qapa')
+logger = logging.getLogger(__name__)
 
 def _check_input_files(inputs, parser):
     for input_file in inputs:

@@ -8,15 +8,9 @@ import sys
 import re
 import pandas as pd
 import numpy as np
-import warnings
 import logging
 
-logging.basicConfig(level=logging.INFO, stream=sys.stderr,
-                    format='%(asctime)s - %(levelname)-8s - %(message)s')
-logger = logging.getLogger('collapse')
-logging.captureWarnings(True)
-
-_TAG = 'collapse' 
+logger = logging.getLogger(__name__)
 
 class Interval:
     def __init__(self, l, sp=None):
@@ -68,15 +62,18 @@ class Interval:
                 self.strand, self.gene_id]
 
     def _guess_species(self, species=None):
+        _species = 'unk'
         if re.match(r'ENST\d+', self.name):
-            return 'hg19'
+            _species = 'hg19'
         elif re.match(r'ENSMUST\d+', self.name):
-            return 'mm10'
+            _species = 'mm10'
         elif species is not None:
-            return species
-        warnings.warn('Could not guess species from gene name!' +
-            ' To disable this warning, use --species option', Warning)
-        return 'unk'
+            _species = species
+        else:
+            logger.warnings("Could not guess species from gene name!"
+                " To disable this warning, use --species option")
+        logger.info("Setting species name to: %s" % (_species))
+        return _species
 
 
 def overlaps(a, b, dist5, dist3):
@@ -124,7 +121,7 @@ def merge_bed(args, inputfile):
     df = df[df.utr_length > 0]
 
     # Sort by three prime coordinate
-    logger.info("Sorting data frame by 3' end", tag=_TAG)
+    logger.info("Sorting data frame by 3' end")
     df['three_prime'] = np.where(df['strand'] == '+', df['end'], df['start'])
     df = df.sort_values(['strand', 'seqnames', 'three_prime'])
 
@@ -132,7 +129,7 @@ def merge_bed(args, inputfile):
     collapsed_three_prime = []
     overlap_diff_genes = set()
 
-    logger.info("Iterating and merging intervals by 3' end", tag=_TAG)
+    logger.info("Iterating and merging intervals by 3' end")
     for index, line in df.iterrows():
         my_interval = Interval(line, args.species)
 
@@ -165,7 +162,7 @@ def merge_bed(args, inputfile):
     three_prime_df = \
         three_prime_df[~three_prime_df['gene_id'].isin(overlap_diff_genes)]
 
-    logger.info("Updating 5' end for each gene", tag=_TAG)
+    logger.info("Updating 5' end for each gene")
 
     # Filter by forward and reverse strand
     forward = three_prime_df[three_prime_df.strand == '+']
