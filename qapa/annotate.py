@@ -136,7 +136,7 @@ def preprocess_polyasite(polyasite_file, min_polyasite):
     polyasite = sort_bed(polyasite)
 
     pas_filter = re.compile("(DS|TE)$")
-    is_v2 = polyasite.field_count == 11 
+    is_v2 = polyasite.field_count() == 11 
 
     if is_v2:
         utils.eprint("Detected PolyASite version 2")
