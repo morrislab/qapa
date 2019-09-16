@@ -70,8 +70,8 @@ class AnnotateTestCase(unittest.TestCase):
 
         count = 0
         for item in result:
-            #self.assertTrue(re.match(r"^chr", item[0]))
-            self.assertEqual(item[0], "X")
+            self.assertTrue(re.match(r"^chr", item[0]))
+            self.assertEqual(item[0], "chrX")
             count += 1
         self.assertEqual(count, 3)
 

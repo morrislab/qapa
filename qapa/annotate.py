@@ -106,6 +106,13 @@ def resolve_overlaps(feature):
     return feature
 
 
+def _add_chr(feature):
+    if re.match(r"^chr", feature.chrom):
+        return feature
+    feature.chrom = 'chr' + feature.chrom
+    return feature
+
+
 def sort_bed(bedobj):
     """
     Use GNU sort
@@ -151,8 +158,11 @@ def preprocess_polyasite(polyasite_file, min_polyasite):
         .filter(lambda x: int(x[num_exp]) >= min_polyasite)\
         .filter(lambda x: pas_filter.search(x[field_index]))\
         .cut(range(0, 6))\
+        .each(_add_chr)\
         .saveas()
+    validate(polyasite_te, polyasite_file)
     return polyasite_te
+
 
 def validate(bedobj, filename):
     """
