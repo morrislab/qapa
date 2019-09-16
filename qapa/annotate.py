@@ -115,6 +115,45 @@ def sort_bed(bedobj):
     return pybedtools.BedTool(tmpbed)
 
 
+def preprocess_gencode_polya(gencode_polya_file):
+    """
+    Preprocess GENCODE polyA track
+    """
+    gencode = pybedtools.BedTool(gencode_polya_file)\
+        .filter(lambda x: x.name == 'polyA_site')\
+        .saveas()
+    validate(gencode, gencode_polya_file)
+    return gencode
+
+
+def preprocess_polyasite(polyasite_file, min_polyasite):
+    """
+    Pre-proecess polyasite file
+    """
+    polyasite = pybedtools.BedTool(polyasite_file)\
+        .saveas()
+    validate(polyasite, polyasite_file)
+    polyasite = sort_bed(polyasite)
+
+    pas_filter = re.compile("(DS|TE)$")
+    is_v2 = polyasite.field_count == 11 
+
+    if is_v2:
+        utils.eprint("Detected PolyASite version 2")
+        field_index = 9
+        num_exp = 7
+
+    else:
+        utils.eprint("Detected PolyASite version 1")
+        field_index = 3
+        num_exp = 4
+    polyasite_te = polyasite\
+        .filter(lambda x: int(x[num_exp]) >= min_polyasite)\
+        .filter(lambda x: pas_filter.search(x[field_index]))\
+        .cut(range(0, 6))\
+        .saveas()
+    return polyasite_te
+
 def validate(bedobj, filename):
     """
     Validate the input BED file using solution from
@@ -145,29 +184,10 @@ def main(args, input_filename, fout=sys.stdout):
         validate(custom, args.other)
         sites = sort_bed(custom)
     elif not args.no_annotation:
-        pas_filter = re.compile("(DS|TE)$")
-        gencode = pybedtools.BedTool(args.gencode_polya)\
-            .filter(lambda x: x.name == 'polyA_site')\
-            .saveas()
-        validate(gencode, args.gencode_polya)
-        polyasite = pybedtools.BedTool(args.polyasite)\
-            .filter(lambda x: int(x.score) >= args.min_polyasite)\
-            .saveas()
-        validate(polyasite, args.polyasite)
-        polyasite = sort_bed(polyasite)
+        gencode = preprocess_polyasite(args.gencode_polya)
 
-        is_polyasite_v2 = polyasite.field_count == 11 
+        polyasite_te = preprocess_polyasite(args.polyasite, args.min_polyasite)
 
-        if is_polyasite_v2:
-            utils.eprint("Detected PolyASite version 2")
-            field_index = 9
-        else:
-            utils.eprint("Detected PolyASite version 1")
-            field_index = 3
-        polyasite_te = polyasite\
-            .filter(lambda x: pas_filter.search(x[field_index]))\
-            .cut(range(0, 6))\
-            .saveas()
         sites = gencode.cat(polyasite_te, postmerge=False)
 
         # Downstream 1kb PAS

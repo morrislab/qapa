@@ -5,10 +5,10 @@ from qapa import annotate as anno
 
 class AnnotateTestCase(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         example = "chrX	74026591	74036494	ENSMUST00000100750_Mecp2	8825	-	74035416	74036494	Mecp2	74026591,74036981,74079908,74085509	74036494,74037332,74080032,74085669"
-        self.bed = pybedtools.BedTool(example, from_string=True)
-
+        cls.bed = pybedtools.BedTool(example, from_string=True)
 
     def test_extend_feature(self):
         l = 1
@@ -41,6 +41,19 @@ class AnnotateTestCase(unittest.TestCase):
 
         target = anno.restore_feature(target, length=l)
         self.assertEqual(target.start, 24)
+
+    def test_preprocess_gencode(self):
+        result = anno.preprocess_gencode_polya("files/gencode.polya.example.bed")
+
+        # Test no polya_signals
+        count = 0
+        for item in result:
+            self.assertEqual(item.name, 'polyA_site')
+            count += 1
+
+        # Should be four entries total
+        self.assertEqual(count, 4)
+
 
 
 
