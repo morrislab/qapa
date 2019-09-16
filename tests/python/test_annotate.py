@@ -1,5 +1,6 @@
 import unittest
 import sys
+import re
 import pybedtools
 from qapa import annotate as anno
 
@@ -54,8 +55,25 @@ class AnnotateTestCase(unittest.TestCase):
         # Should be four entries total
         self.assertEqual(count, 4)
 
+    def test_preprocess_polyasite_v1(self):
+        result = anno.preprocess_polyasite("files/polyasite_v1.example.bed", 2)
 
+        count = 0
+        for item in result:
+            self.assertTrue(re.search(r"(DS|TE)$", item.name))
+            self.assertGreaterEqual(int(item[4]), 2)
+            count += 1
+        self.assertEqual(count, 2)
 
+    def test_preprocess_polyasite_v2(self):
+        result = anno.preprocess_polyasite("files/polyasite_v2.example.bed", 2)
+
+        count = 0
+        for item in result:
+            #self.assertTrue(re.match(r"^chr", item[0]))
+            self.assertEqual(item[0], "X")
+            count += 1
+        self.assertEqual(count, 3)
 
 
 if __name__ == '__main__':
