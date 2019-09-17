@@ -69,9 +69,9 @@ class Interval:
         elif species is not None:
             _species = species
         else:
-            logger.warning("Could not guess species from gene name!"
+            logger.debug("Could not guess species from gene name!"
                 " To disable this warning, use --species option")
-        logger.info("Setting species name to: %s" % (_species))
+        logger.debug("Setting species name to: %s" % (_species))
         return _species
 
 

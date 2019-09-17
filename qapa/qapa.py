@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 def _check_input_files(inputs, parser):
     for input_file in inputs:
         if input_file and not os.path.exists(input_file):
+            logger.error("No such file: {}".format(input_file))
             parser.error("No such file: {}".format(input_file))
 
 
@@ -237,7 +238,7 @@ def build(args):
         result = collapse.merge_bed(args, tf3.name)
         result.to_csv(sys.stdout, sep="\t", index=False, header=False)
     except Exception as e:
-        logger.exception("Error occurred in build.")
+        logger.exception("Error occurred in build:")
     finally:
         if not args.save:
             os.unlink(tf1.name)
