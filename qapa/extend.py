@@ -100,10 +100,6 @@ def _extend(feature, most_five_prime, forward, num_extends=0):
     newfeature = pd.concat([feature, block_cols])
     newfeature['start'] = interval_start
     newfeature['end'] = interval_end
-    #if forward:
-        #newfeature['lastexon_cds_start'] = interval_start
-    #else:
-        #newfeature['lastexon_cds_end'] = interval_end
     return newfeature
 
 

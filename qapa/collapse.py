@@ -91,23 +91,6 @@ def same_gene(a, b):
     return a.gene_id == b.gene_id
 
 
-# def getoptions():
-#     usage = "usage: python %prog [options] sorted_grouped_reads.bed annotation.db"
-#     desc = "Process sorted BED file and collapse consecutive intervals that" + \
-#     " have similar 3' ends."
-#     parser = OptionParser(usage=usage, description=desc)
-#     parser.add_option("-d", type = "int", default = 24,
-#             dest = "dist3", metavar = "DISTANCE",
-#             help = "Maximum distance between 3' ends to merge [%default]")
-#     parser.add_option("-f", type = "int", default = 3,
-#             dest = "dist5", metavar = "DISTANCE",
-#             help = "Maximum distance between 5' ends to merge [%default]")
-#     (opts, args) = parser.parse_args()
-#     if len(args) < 1:
-#         parser.error("Missing arguments")
-#     return (opts, args)
-
-
 def merge_bed(args, inputfile):
     '''Go through a sorted BED file and merge intervals together'''
 
@@ -138,10 +121,9 @@ def merge_bed(args, inputfile):
             if same_gene(prev_interval, my_interval):
                 prev_interval.merge(my_interval)
             else:
-                # print("Skipping overlapping but different "
-                #       "genes %s and %s" %
-                #       (prev_interval.gene_id, my_interval.gene_id),
-                #       file=sys.stderr)
+                logger.warning("Skipping overlapping but different "
+                      "genes %s and %s" %
+                      (prev_interval.gene_id, my_interval.gene_id))
                 overlap_diff_genes.add(prev_interval.gene_id)
                 overlap_diff_genes.add(my_interval.gene_id)
                 prev_interval = None
@@ -181,6 +163,3 @@ def merge_bed(args, inputfile):
     # Join back together
     return pd.concat([forward, reverse])
 
-
-if __name__ == '__main__':
-    pass

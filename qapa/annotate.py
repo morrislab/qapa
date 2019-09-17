@@ -274,6 +274,3 @@ def main(args, input_filename, fout=sys.stdout):
     fout.write("\t".join(header) + "\n")
     fout.write(str(overlap_utrs))
 
-
-if __name__ == '__main__':
-    pass

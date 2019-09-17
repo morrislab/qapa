@@ -4,7 +4,6 @@ import fileinput
 import numpy as np
 import pandas as pd
 import logging
-# import sqlite3
 
 logger = logging.getLogger(__name__)
 
@@ -117,14 +116,6 @@ def get_stripped_name(name):
 
 def main(args, fout=sys.stdout):
 
-    # print "\t".join(["seqnames", "start", "end", "name", "utr_length", "strand",
-                     #"lastexon_cds_start", "lastexon_cds_end", "name2",
-                     #"exonStarts", "exonEnds"])
-
-    # conn = sqlite3.connect(args.db)
-
-    # query = "select gene_biotype, transcript_biotype from ensembl_id where transcript_id = ?"
-
     conn = pd.read_table(args.db)
     conn = conn.loc[:, ['Transcript stable ID', 'Gene type',
                         'Transcript type']].drop_duplicates()
@@ -147,7 +138,6 @@ def main(args, fout=sys.stdout):
             pass
 
         if re.match(r"^#", row):
-            #   c = c + 1
             continue
 
         rowobj = Row(row, args.no_header)
@@ -165,15 +155,6 @@ def main(args, fout=sys.stdout):
                 logger.warning("Skipping %s as chromosome %s contains "
                               "underscores." % (rowobj.name, rowobj.chrom))
             continue
-
-        # filter for only protein-coding genes
-        # result = conn.execute(query, (rowobj.get_stripped_name(),))
-        # result = result.fetchone()
-        # if result is None or \
-        #     not (result[0] == "protein_coding" and \
-        #     result[1] == "protein_coding"):
-        #         c = c + 1
-        #         continue
 
         # filter for only protein-coding genes
         try:
@@ -196,11 +177,7 @@ def main(args, fout=sys.stdout):
             c = c + 1
 
     fileinput.close()
-    # conn.close()
     if float(c) / float(n) > 0.75:
         logger.warning("%d/%d (%0.2f%%) were skipped. Are you using the "
               "correct database?" % (c, n, float(c)/float(n)))
 
-
-if __name__ == '__main__':
-    pass
