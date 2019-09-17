@@ -3,7 +3,6 @@
 # BED file must be sorted by 3' coordinate, strand, followed by start
 # coordinate.
 
-from __future__ import print_function
 import sys
 import re
 import pandas as pd

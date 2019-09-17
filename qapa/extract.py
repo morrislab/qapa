@@ -1,4 +1,3 @@
-from __future__ import print_function
 import re
 import sys
 import fileinput
@@ -8,7 +7,6 @@ import logging
 # import sqlite3
 
 logger = logging.getLogger(__name__)
-#logging.captureWarnings(True)
 
 class Row:
     def __init__(self, row, no_header=False):
@@ -61,9 +59,8 @@ class Row:
             bed.append(','.join([str(x) for x in self.exonStarts]))
             bed.append(','.join([str(x) for x in self.exonEnds]))
         else:
-            pass
-            # print >> sys.stderr, "Skipping " + self.name + " because it" + \
-            #" contains an intron in 3' UTR"
+            logger.debug("Skipping %s because it contains an intron in 3' UTR" %
+                    self.name)
         return bed
 
     def extract_3utr(self, min_utr_length=0):

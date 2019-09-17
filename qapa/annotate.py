@@ -2,7 +2,6 @@
 # complete poly(A) site coordinates from PolyAsite database and GENCODE poly(A)
 # site track
 
-from __future__ import print_function
 import sys
 import os
 import pybedtools
