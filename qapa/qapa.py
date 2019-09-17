@@ -5,15 +5,9 @@ import os.path
 import re
 import argparse
 import tempfile
-from tqdm import tqdm
 import logging
 
-from . import extract
-from . import annotate
-from . import extend
-from . import collapse
-from . import fasta
-from . import utils
+from . import extract, annotate, extend, collapse, fasta
 from .version import __version__
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr,
@@ -220,34 +214,29 @@ def build(args):
                                       delete=False)
 
     try:
-        with tqdm(total=4, unit="step", desc="build") as pbar:
-            # 1) get last exon from table
-            logger.info("Extracting 3' UTRs from table")
-            extract.main(args, tf1)
-            logger.debug(tf1.name)
-            tf1.close()
-            pbar.update(1)
+        # 1) get last exon from table
+        logger.info("Extracting 3' UTRs from %s" % args.annotation_file[0])
+        extract.main(args, tf1)
+        logger.debug(tf1.name)
+        tf1.close()
 
-            # 2) annotate 3' ends
-            logger.info("Annotating 3' UTRs")
-            annotate.main(args, tf1.name, tf2)
-            logger.debug(tf2.name)
-            tf2.close()
-            pbar.update(2)
+        # 2) annotate 3' ends
+        logger.info("Annotating 3' UTRs")
+        annotate.main(args, tf1.name, tf2)
+        logger.debug(tf2.name)
+        tf2.close()
 
-            # 3) extend 5'
-            logger.info("Checking 5' ends")
-            result = extend.main(args, tf2.name)
-            result.to_csv(tf3, sep="\t", index=False, header=True)
-            logger.debug(tf3.name)
-            tf3.close()
-            pbar.update(3)
+        # 3) extend 5'
+        logger.info("Checking 5' ends")
+        result = extend.main(args, tf2.name)
+        result.to_csv(tf3, sep="\t", index=False, header=True)
+        logger.debug(tf3.name)
+        tf3.close()
 
-            # # 4) collapse 3' ends
-            logger.info("Collapsing 3' ends")
-            result = collapse.merge_bed(args, tf3.name)
-            result.to_csv(sys.stdout, sep="\t", index=False, header=False)
-            pbar.update(4)
+        # # 4) collapse 3' ends
+        logger.info("Collapsing 3' ends")
+        result = collapse.merge_bed(args, tf3.name)
+        result.to_csv(sys.stdout, sep="\t", index=False, header=False)
     except Exception as e:
         logger.exception("Error occurred in build.")
     finally:

@@ -30,8 +30,8 @@ setup(name='qapa',
                         'pandas >= 0.17',
                         'numpy >= 1.10.0',
                         'biopython >= 1.66',
-                        'pybedtools >= 0.7.9',
-                        'tqdm'],
+                        'pybedtools >= 0.7.9'
+                        ],
       entry_points={
           'console_scripts': [
               'qapa = qapa.qapa:main'
