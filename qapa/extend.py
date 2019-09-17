@@ -13,7 +13,9 @@
 
 import sys
 import pandas as pd
-from . import utils
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def is_plus(strands):
@@ -153,13 +155,10 @@ def main(args, input_filename):
             try:
                 newdf.append(future.result())
             except Exception as exc:
-                utils.eprint("Error extending %s: %s" % (name2, exc))
+                logger.exception("Error extending %s: %s" % (name2, exc))
 
     # for name2, group in tqdm(df.groupby('name2'), desc="extend"):
     #     newdf.append(extend_5prime(group, args.numextends))
 
     return pd.concat(newdf).sort_values(['seqnames', 'start'])
 
-
-if __name__ == '__main__':
-    pass
