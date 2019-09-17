@@ -19,7 +19,7 @@ class Row:
             l.insert(0, "dummy")
         if len(l) < 13:
             raise ValueError("Insufficient number of columns in gene"
-                             " prediction file.")
+                             " prediction file: %s" % row)
 
         self.name = l[1]
         self.chrom = l[2]
@@ -201,8 +201,8 @@ def main(args, fout=sys.stdout):
     fileinput.close()
     # conn.close()
     if float(c) / float(n) > 0.75:
-        warnings.warn("%d/%d (%0.2f%%) were skipped. Are you using the "
-              "correct database?" % (c, n, float(c)/float(n)), Warning)
+        logger.warning("%d/%d (%0.2f%%) were skipped. Are you using the "
+              "correct database?" % (c, n, float(c)/float(n)))
 
 
 if __name__ == '__main__':

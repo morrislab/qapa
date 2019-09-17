@@ -83,7 +83,7 @@ def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False
     if dist_from_three_prime > min_distance and \
             not custom and \
             int(feature[site_numsamples]) < min_intermediate_pas:
-        #print("Skipping {}".format(feature.name), file=sys.stderr)
+        logger.debug("Skipping {}".format(feature.name)) 
         return None
 
     return feature
@@ -125,6 +125,7 @@ def preprocess_gencode_polya(gencode_polya_file):
     """
     Preprocess GENCODE polyA track
     """
+    logger.info("Preprocessing %s" % gencode_polya_file)
     gencode = pybedtools.BedTool(gencode_polya_file)\
         .filter(lambda x: x.name == 'polyA_site')\
         .saveas()
@@ -136,6 +137,7 @@ def preprocess_polyasite(polyasite_file, min_polyasite):
     """
     Pre-proecess polyasite file
     """
+    logger.info("Preprocessing %s" % polyasite_file)
     polyasite = pybedtools.BedTool(polyasite_file)\
         .saveas()
     validate(polyasite, polyasite_file)
@@ -145,12 +147,12 @@ def preprocess_polyasite(polyasite_file, min_polyasite):
     is_v2 = polyasite.field_count() == 11 
 
     if is_v2:
-        utils.eprint("Detected PolyASite version 2")
+        logger.info("Detected PolyASite version 2")
         field_index = 9
         num_exp = 7
 
     else:
-        utils.eprint("Detected PolyASite version 1")
+        logger.info("Detected PolyASite version 1")
         field_index = 3
         num_exp = 4
     polyasite_te = polyasite\
@@ -187,6 +189,7 @@ def main(args, input_filename, fout=sys.stdout):
 
     # Load databases with pybedtools
     if args.other:
+        logger.info("Annotating with %s" % args.other)
         custom_mode = True
         custom = pybedtools.BedTool(args.other)
         validate(custom, args.other)
