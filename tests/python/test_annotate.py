@@ -56,7 +56,9 @@ class AnnotateTestCase(unittest.TestCase):
         self.assertEqual(count, 4)
 
     def test_preprocess_polyasite_v1(self):
-        result = anno.preprocess_polyasite("files/polyasite_v1.example.bed", 2)
+        with self.assertLogs("qapa", level="INFO") as cm:
+            result = anno.preprocess_polyasite("files/polyasite_v1.example.bed", 2)
+        self.assertIn("Detected PolyASite version 1", cm.output[1])
 
         count = 0
         for item in result:
@@ -66,7 +68,9 @@ class AnnotateTestCase(unittest.TestCase):
         self.assertEqual(count, 2)
 
     def test_preprocess_polyasite_v2(self):
-        result = anno.preprocess_polyasite("files/polyasite_v2.example.bed", 2)
+        with self.assertLogs("qapa", level="INFO") as cm:
+            result = anno.preprocess_polyasite("files/polyasite_v2.example.bed", 2)
+        self.assertIn("Detected PolyASite version 2", cm.output[1])
 
         count = 0
         for item in result:
