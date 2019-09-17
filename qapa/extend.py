@@ -13,7 +13,7 @@
 
 import sys
 import pandas as pd
-from tqdm import tqdm
+from . import utils
 
 
 def is_plus(strands):
@@ -143,11 +143,18 @@ def main(args, input_filename):
     # Process each group
     newdf = []
 
-    from multiprocessing import Pool
-    from itertools import repeat
+    from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    with Pool(args.cores) as pool:
-        newdf = pool.starmap(extend_5prime, zip([group for _, group in df.groupby('name2')], repeat(args.numextends)))
+    with ProcessPoolExecutor(args.cores) as executor:
+        futures = {executor.submit(extend_5prime, group, args.numextends): name2 \
+                    for name2, group in df.groupby('name2')}
+        for future in as_completed(futures):
+            name2 = futures[future]
+            try:
+                newdf.append(future.result())
+            except Exception as exc:
+                utils.eprint("Error extending %s: %s" % (name2, exc))
+
     # for name2, group in tqdm(df.groupby('name2'), desc="extend"):
     #     newdf.append(extend_5prime(group, args.numextends))
 
