@@ -289,8 +289,8 @@ def quant(args):
 
 
 def main():
-    args = getoptions()
     logger.info("Version %s" % __version__)
+    args = getoptions()
     args.func(args)
     logger.info("Finished!")
 
