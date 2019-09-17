@@ -3,6 +3,10 @@ import fileinput
 import sys
 from Bio import SeqIO
 import pybedtools
+import logging
+
+logger = logging.getLogger(__name__)
+logging.captureWarnings(True)
 
 
 def get_sequences(bed_file, genome):
@@ -31,8 +35,7 @@ def filter_sequences(fasta_file, min_length=100, fout=sys.stdout):
     handle.close()
 
     if skipped > 0:
-        print("[%s] Skipped %d sequences" % ('filter_fasta', skipped),
-              file=sys.stderr)
+        logger.info("[%s] Skipped %d sequences" % ('filter_fasta', skipped))
 
 
 def main(args):

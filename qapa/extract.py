@@ -1,14 +1,14 @@
 from __future__ import print_function
 import re
 import sys
-import warnings
 import fileinput
 import numpy as np
 import pandas as pd
+import logging
 # import sqlite3
-from . import utils
 
-_TAG = 'extract'
+logger = logging.getLogger(__name__)
+#logging.captureWarnings(True)
 
 class Row:
     def __init__(self, row, no_header=False):
@@ -163,11 +163,10 @@ def main(args, fout=sys.stdout):
         if rowobj.chromosome_contains_underscore():
             w = w + 1
             if w == max_warnings:
-                warnings.warn("Suppressing chromosome warnings...", Warning)
+                logger.warning("Suppressing chromosome warnings...")
             elif w < max_warnings:
-                warnings.warn("Skipping %s as chromosome %s contains "
-                              "underscores." % (rowobj.name, rowobj.chrom),
-                              Warning)
+                logger.warning("Skipping %s as chromosome %s contains "
+                              "underscores." % (rowobj.name, rowobj.chrom))
             continue
 
         # filter for only protein-coding genes

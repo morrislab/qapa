@@ -6,6 +6,7 @@ import re
 import argparse
 import tempfile
 from tqdm import tqdm
+import logging
 
 from . import extract
 from . import annotate
@@ -15,6 +16,9 @@ from . import fasta
 from . import utils
 from .version import __version__
 
+logging.basicConfig(level=logging.INFO, stream=sys.stderr,
+                    format='%(name)-13s - %(asctime)s - %(levelname)-8s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def _check_input_files(inputs, parser):
     for input_file in inputs:
@@ -173,7 +177,7 @@ Output is in BED format plus additional gene symbol column
     if args.temp:
         if not os.path.exists(args.temp):
             parser.error("No such directory: {}".format(args.temp))
-        utils.eprint("Setting temporary directory to {}".format(args.temp))
+        logger.info("Setting temporary directory to {}".format(args.temp))
         tempfile.tempdir = args.temp
 
     if args.subcommand == 'build':
@@ -186,11 +190,11 @@ Output is in BED format plus additional gene symbol column
                 parser.error("Missing arguments: -g and/or -p")
 
         if args.other and (args.gencode_polya or args.polyasite):
-            utils.eprint("Option -o (custom BED) will be used for build phase and "
+            logger.info("Option -o (custom BED) will be used for build phase and "
                    "-g and -p will be ignored")
 
         if args.no_annotation:
-            utils.eprint("Annotation step will be skipped")
+            logger.info("Annotation step will be skipped")
 
         if not (args.species is None or \
                 re.match(r'^[a-zA-Z0-9]+$', args.species)):
@@ -218,36 +222,34 @@ def build(args):
     try:
         with tqdm(total=4, unit="step", desc="build") as pbar:
             # 1) get last exon from table
-            utils.eprint("Extracting 3' UTRs from table")
+            logger.info("Extracting 3' UTRs from table")
             extract.main(args, tf1)
-            # utils.eprint(tf1.name)
+            logger.debug(tf1.name)
             tf1.close()
             pbar.update(1)
 
             # 2) annotate 3' ends
-            utils.eprint("Annotating 3' UTRs")
+            logger.info("Annotating 3' UTRs")
             annotate.main(args, tf1.name, tf2)
-            # utils.eprint(tf2.name)
+            logger.debug(tf2.name)
             tf2.close()
             pbar.update(2)
 
             # 3) extend 5'
-            utils.eprint("Checking 5' ends")
+            logger.info("Checking 5' ends")
             result = extend.main(args, tf2.name)
             result.to_csv(tf3, sep="\t", index=False, header=True)
-            # utils.eprint(tf3.name)
+            logger.debug(tf3.name)
             tf3.close()
             pbar.update(3)
 
             # # 4) collapse 3' ends
-            utils.eprint("Collapsing 3' ends")
-            # fout = open(args.output_file[0], 'w')
+            logger.info("Collapsing 3' ends")
             result = collapse.merge_bed(args, tf3.name)
             result.to_csv(sys.stdout, sep="\t", index=False, header=False)
-            # fout.close()
             pbar.update(4)
     except Exception as e:
-        utils.eprint("Error: {}".format(e))
+        logger.exception("Error occurred in build.")
     finally:
         if not args.save:
             os.unlink(tf1.name)
@@ -257,7 +259,7 @@ def build(args):
 
 def fetch_sequences(args):
     fasta.main(args)
-    utils.eprint("Sequences written to {}".format(args.output_file[0]))
+    logger.info("Sequences written to {}".format(args.output_file[0]))
 
 
 def quant(args):
@@ -274,11 +276,11 @@ def quant(args):
         cmd = "create_merged_data.R --db {} -f {} -F {} {} > {}".format(
             args.db, args.field, args.format, " ".join(args.quant_files),
             intermediate_name)
-        # utils.eprint(cmd)
+        logger.info(cmd)
         os.system(cmd)
 
         cmd = "compute_pau.R -e {}".format(intermediate_name)
-        # utils.eprint(cmd)
+        logger.info(cmd)
         os.system(cmd)
 
     finally:
@@ -288,9 +290,9 @@ def quant(args):
 
 def main():
     args = getoptions()
-    utils.eprint("Version %s" % __version__)
+    logger.info("Version %s" % __version__)
     args.func(args)
-    utils.eprint("Finished!")
+    logger.info("Finished!")
 
 
 if __name__ == '__main__':
