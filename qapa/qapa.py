@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 def _check_input_files(inputs, parser):
     for input_file in inputs:
         if input_file and not os.path.exists(input_file):
-            logger.error("No such file: {}".format(input_file))
             parser.error("No such file: {}".format(input_file))
 
 
@@ -41,6 +40,8 @@ Note: unless otherwise specified, all input files can be in compressed
     common.add_argument('-t', '--temp', type=str,
                         help="set temp directory [{}]".
                         format(tempfile.gettempdir()))
+    common.add_argument('--debug', action="store_true",
+                        help="Increase verbosity of log messages")
 
     # build utrs
     desc = """
@@ -173,6 +174,10 @@ Output is in BED format plus additional gene symbol column
             parser.error("No such directory: {}".format(args.temp))
         logger.info("Setting temporary directory to {}".format(args.temp))
         tempfile.tempdir = args.temp
+
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        logger.debug("Debug mode enabled. Increasing verbosity.")
 
     if args.subcommand == 'build':
         _check_input_files([args.polyasite, args.gencode_polya, args.db,
