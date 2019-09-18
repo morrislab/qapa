@@ -26,7 +26,7 @@ def filter_sequences(fasta_file, min_length=100, fout=sys.stdout):
         if len(sequence) > min_length and \
                 not (sequence in seqs and record.id in ids):
             seqs.add(sequence)
-            seqs.add(record.id)
+            ids.add(record.id)
             SeqIO.write(record, fout, "fasta")
         else:
             logger.debug("Skipping %s" % record.id)
