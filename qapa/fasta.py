@@ -39,6 +39,9 @@ def filter_sequences(fasta_file, min_length=100, fout=sys.stdout):
 
 
 def main(args):
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+
     seqs = get_sequences(args.bed_file[0], args.genome)
 
     fout = open(args.output_file[0], "w")

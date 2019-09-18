@@ -180,6 +180,8 @@ def validate(bedobj, filename):
 
 
 def main(args, input_filename, fout=sys.stdout):
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     # Load intervals
     fin = sys.stdin if input_filename == '-' else input_filename

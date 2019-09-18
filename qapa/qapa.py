@@ -176,10 +176,6 @@ Output is in BED format plus additional gene symbol column
         logger.info("Setting temporary directory to {}".format(args.temp))
         tempfile.tempdir = args.temp
 
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-        logger.debug("Debug mode enabled. Increasing verbosity.")
-
     if args.subcommand == 'build':
         _check_input_files([args.polyasite, args.gencode_polya, args.db,
                             args.other, args.annotation_file[0]], build_parser)
@@ -291,6 +287,9 @@ def quant(args):
 def main():
     logger.info("Version %s" % __version__)
     args = getoptions()
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+
     args.func(args)
     logger.info("Finished!")
 

@@ -93,6 +93,8 @@ def same_gene(a, b):
 
 def merge_bed(args, inputfile):
     '''Go through a sorted BED file and merge intervals together'''
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     if inputfile == '-':
         df = pd.read_table(sys.stdin)

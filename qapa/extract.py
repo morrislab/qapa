@@ -117,6 +117,8 @@ def get_stripped_name(name):
 
 
 def main(args, fout=sys.stdout):
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     conn = pd.read_table(args.db)
     conn = conn.loc[:, ['Transcript stable ID', 'Gene type',

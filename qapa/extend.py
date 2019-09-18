@@ -133,6 +133,9 @@ def extend_5prime(feature_group, numextends=0):
 
 
 def main(args, input_filename):
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+
     if input_filename == '-':
         df = pd.read_table(sys.stdin)
     else:
