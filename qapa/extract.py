@@ -16,7 +16,9 @@ class Row:
             l.insert(0, "dummy")
         if len(l) < 13:
             raise ValueError("Insufficient number of columns in gene"
-                             " prediction file: %s" % row)
+                             " prediction file: %s. If gtfToGenePred was used,"
+                             " please ensure that the -genePredExt option is"
+                             " enabled!" % row)
 
         self.name = l[1]
         self.chrom = l[2]
@@ -125,11 +127,10 @@ def main(args, fout=sys.stdout):
     w = 0
     c = 0
     n = 0
+    no_header = True
+    bad_chroms = set()
     for row in fileinput.input(args.annotation_file[0],
                                openhook=fileinput.hook_compressed):
-        
-        if fileinput.isfirstline() and not args.no_header:
-            continue
         n = n + 1
 
         try:
@@ -138,9 +139,12 @@ def main(args, fout=sys.stdout):
             pass
 
         if re.match(r"^#", row):
+            if fileinput.isfirstline():
+                logger.debug("Header detected")
+                no_header = False
             continue
 
-        rowobj = Row(row, args.no_header)
+        rowobj = Row(row, no_header)
 
         if not args.no_skip_random_chromosomes and \
             rowobj.is_on_random_chromosome():
@@ -149,11 +153,14 @@ def main(args, fout=sys.stdout):
 
         if rowobj.chromosome_contains_underscore():
             w = w + 1
-            if w == max_warnings:
-                logger.warning("Suppressing chromosome warnings...")
-            elif w < max_warnings:
-                logger.warning("Skipping %s as chromosome %s contains "
-                              "underscores." % (rowobj.name, rowobj.chrom))
+
+            if rowobj.chrom not in bad_chroms:
+                logger.warning("Skipping chromosome %s because it contains"
+                               " underscores" % rowobj.chrom)
+                bad_chroms.add(rowobj.chrom)
+
+            logger.debug("Skipping %s as chromosome %s contains "
+                          "underscores." % (rowobj.name, rowobj.chrom))
             continue
 
         # filter for only protein-coding genes

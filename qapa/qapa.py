@@ -100,9 +100,10 @@ Output is in BED format plus additional gene symbol column
     optional.add_argument("-s", "--save", action='store_true',
                           help="Don't automatically delete intermediate files")
     optional.add_argument("-H", "--no_header", action='store_true',
-                          help="Annotation table (genePred) has no header. "
+                          help="(Deprecated) Annotation table (genePred) has no header. "
                           "Use this option if your input table was created "
-                          "using gtfToGenePred -genePredExt.")
+                          "using gtfToGenePred -genePredExt. This option is "
+                          "no longer required as of v1.3.")
     optional.add_argument("-N", "--no_annotation", action='store_true',
                           help="Skip annotation step. Use this option if you "
                           "only have a gene model annotation file to build "
@@ -198,6 +199,11 @@ Output is in BED format plus additional gene symbol column
         if not (args.species is None or \
                 re.match(r'^[a-zA-Z0-9]+$', args.species)):
             parser.error("Species must be alphanumeric.")
+
+        if args.no_header:
+            logger.warning("DEPRECATION NOTICE: As of v1.3.0, it is no longer "
+                           "required to specify -H/--no-header when "
+                           "supplying a custom genePred file.")
 
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
