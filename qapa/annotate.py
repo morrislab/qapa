@@ -8,6 +8,10 @@ import os
 import pybedtools
 from pybedtools import featurefuncs
 import re
+from . import utils
+
+_TAG = 'annotate'
+
 
 def extend_feature(feature, length=24):
     """Extend the 3' end by length
@@ -15,7 +19,10 @@ def extend_feature(feature, length=24):
     if feature.strand == "+":
         feature.end = feature.end + length
     else:
-        feature.start = feature.start - length
+        if feature.start >= length:
+            feature.start = feature.start - length
+        else:
+            feature.start = 0
     return feature
 
 
@@ -25,7 +32,11 @@ def restore_feature(feature, length=24):
     if feature.strand == "+":
         feature.end = feature.end - length
     else:
-        feature.start = feature.start + length
+        if feature.start == 0:
+            exonStarts = feature[9].split(",")
+            feature.start = int(exonStarts[0])
+        else:
+            feature.start = feature.start + length
     return feature
 
 
@@ -45,7 +56,7 @@ def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False
     if feature[site_start] == '-1':
         return feature
 
-    # Upate cluster poly(A) site coordinates if match is from PolyAsite
+    # Update cluster poly(A) site coordinates if match is from PolyAsite
     match = re.match(r'chr.*:(\d+):.*', feature[site_name])
     if match and not custom:
         if feature.strand == "+":
@@ -112,12 +123,11 @@ def validate(bedobj, filename):
     try:
         ft = bedobj.file_type
         if ft == 'empty':
-            print("[annotate] BED file %s is empty!" % filename,
-                  file=sys.stderr)
+            utils.eprint("BED file %s is empty!" % filename, tag=_TAG)
             sys.exit(1)
-    except IndexError:
-        print("[annotate] Error reading the BED file %s." % filename +
-              " Is the file properly formatted?", file=sys.stderr)
+    except IndexError as err:
+        utils.eprint("%s. Error reading the BED file %s." % (err, filename) +
+                     " Is the file properly formatted?", tag=_TAG)
         sys.exit(1)
 
 

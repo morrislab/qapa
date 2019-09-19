@@ -11,11 +11,8 @@ from . import annotate
 from . import extend
 from . import collapse
 from . import fasta
+from . import utils
 from .version import __version__
-
-
-def eprint(*args, **kwargs):
-    print("[qapa] {}".format(*args), file=sys.stderr, **kwargs)
 
 
 def _check_input_files(inputs, parser):
@@ -97,9 +94,9 @@ Output is in BED format plus additional gene symbol column
                           "cannot be used in conjunction with -g and -p.")
     optional.add_argument("-C", "--no_skip_random_chromosomes", default=True,
                           action="store_true",
-                          help="Disable skiping of chromosomes that don't "
+                          help="Disable skipping of chromosomes that don't "
                           "match the regular expression pattern "
-                          " '^(chr)*[0-9XY]+$'")
+                          " '^(chr)*[0-9XYM]+$'")
     optional.add_argument("-s", "--save", action='store_true',
                           help="Don't automatically delete intermediate files")
     optional.add_argument("-H", "--no_header", action='store_true',
@@ -172,7 +169,7 @@ Output is in BED format plus additional gene symbol column
     if args.temp:
         if not os.path.exists(args.temp):
             parser.error("No such directory: {}".format(args.temp))
-        eprint("Setting temporary directory to {}".format(args.temp))
+        utils.eprint("Setting temporary directory to {}".format(args.temp))
         tempfile.tempdir = args.temp
 
     if args.subcommand == 'build':
@@ -185,11 +182,11 @@ Output is in BED format plus additional gene symbol column
                 parser.error("Missing arguments: -g and/or -p")
 
         if args.other and (args.gencode_polya or args.polyasite):
-            eprint("Option -o (custom BED) will be used for build phase and "
+            utils.eprint("Option -o (custom BED) will be used for build phase and "
                    "-g and -p will be ignored")
 
         if args.no_annotation:
-            eprint("Annotation step will be skipped")
+            utils.eprint("Annotation step will be skipped")
 
         if not (args.species is None or \
                 re.match(r'^[a-zA-Z0-9]+$', args.species)):
@@ -216,32 +213,32 @@ def build(args):
 
     try:
         # 1) get last exon from table
-        eprint("Extracting 3' UTRs from table")
+        utils.eprint("Extracting 3' UTRs from table")
         extract.main(args, tf1)
-        # eprint(tf1.name)
+        # utils.eprint(tf1.name)
         tf1.close()
 
         # 2) annotate 3' ends
-        eprint("Annotating 3' UTRs")
+        utils.eprint("Annotating 3' UTRs")
         annotate.main(args, tf1.name, tf2)
-        # eprint(tf2.name)
+        # utils.eprint(tf2.name)
         tf2.close()
 
         # 3) extend 5'
-        eprint("Checking 5' ends")
+        utils.eprint("Checking 5' ends")
         result = extend.main(args, tf2.name)
         result.to_csv(tf3, sep="\t", index=False, header=True)
-        # eprint(tf3.name)
+        # utils.eprint(tf3.name)
         tf3.close()
 
         # # 4) collapse 3' ends
-        eprint("Collapsing 3' ends")
+        utils.eprint("Collapsing 3' ends")
         # fout = open(args.output_file[0], 'w')
         result = collapse.merge_bed(args, tf3.name)
         result.to_csv(sys.stdout, sep="\t", index=False, header=False)
         # fout.close()
     except Exception as e:
-        eprint("Error: {}".format(e))
+        utils.eprint("Error: {}".format(e))
     finally:
         if not args.save:
             os.unlink(tf1.name)
@@ -251,7 +248,7 @@ def build(args):
 
 def fetch_sequences(args):
     fasta.main(args)
-    eprint("Sequences written to {}".format(args.output_file[0]))
+    utils.eprint("Sequences written to {}".format(args.output_file[0]))
 
 
 def quant(args):
@@ -268,11 +265,11 @@ def quant(args):
         cmd = "create_merged_data.R --db {} -f {} -F {} {} > {}".format(
             args.db, args.field, args.format, " ".join(args.quant_files),
             intermediate_name)
-        # eprint(cmd)
+        # utils.eprint(cmd)
         os.system(cmd)
 
         cmd = "compute_pau.R -e {}".format(intermediate_name)
-        # eprint(cmd)
+        # utils.eprint(cmd)
         os.system(cmd)
 
     finally:
@@ -282,9 +279,9 @@ def quant(args):
 
 def main():
     args = getoptions()
-    eprint("Version %s" % __version__)
+    utils.eprint("Version %s" % __version__)
     args.func(args)
-    eprint("Finished!")
+    utils.eprint("Finished!")
 
 
 if __name__ == '__main__':

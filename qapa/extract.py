@@ -1,11 +1,14 @@
 from __future__ import print_function
 import re
 import sys
+import warnings
 import fileinput
 import numpy as np
 import pandas as pd
 # import sqlite3
+from . import utils
 
+_TAG = 'extract'
 
 class Row:
     def __init__(self, row, no_header=False):
@@ -14,6 +17,9 @@ class Row:
             # add a dummy column in front of list to represent bin column in
             # UCSC genePred tables
             l.insert(0, "dummy")
+        if len(l) < 13:
+            raise ValueError("Insufficient number of columns in gene"
+                             " prediction file.")
 
         self.name = l[1]
         self.chrom = l[2]
@@ -22,10 +28,10 @@ class Row:
         self.txEnd = int(l[5])
         self.cdsStart = int(l[6])
         self.cdsEnd = int(l[7])
-        self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",") if _f]]
-        self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",") if _f]]
-        #self.exonStarts = [int(x) for x in filter(None, l[9].split(","))]
-        #self.exonEnds = [int(x) for x in filter(None, l[10].split(","))]
+        self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",")
+                        if _f]]
+        self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",")
+                                if _f]]
         self.name2 = l[12]
 
         self.utr3 = [self.cdsEnd, self.txEnd]
@@ -37,7 +43,7 @@ class Row:
 
     def extract_last_exon(self, n=1, min_utr_length=0):
         bed = None
-        name = self.get_stripped_name() + "_" + self.name2
+        name = self._join_names()
 
         if not self.has_intron_in_3utr and \
                 self.get_3utr_length() >= min_utr_length:
@@ -62,7 +68,7 @@ class Row:
 
     def extract_3utr(self, min_utr_length=0):
         bed = None
-        name = self.get_stripped_name() + "_" + self.name2
+        name = self._join_names()
 
         if not self.has_intron_in_3utr and \
                 self.get_3utr_length() >= min_utr_length:
@@ -80,7 +86,10 @@ class Row:
         return self.utr3[1] - self.utr3[0]
 
     def is_on_random_chromosome(self):
-        return not re.match(r'^(chr)*[0-9XY]+$', self.chrom)
+        return not re.match(r'^(chr)*[0-9XYM]+$', self.chrom)
+
+    def chromosome_contains_underscore(self):
+        return re.search(r'_', self.chrom)
 
     def get_block_sizes(self, n):
         sizes = [0] * n
@@ -97,13 +106,16 @@ class Row:
                              for x in self.exonStarts[-n:]])
         return ",".join([str(x - self.txStart) for x in self.exonStarts[0:n]])
 
-    def get_stripped_name(self):
-        # If Gencode tables are supplied, the Ensembl transcript ID has a
-        # version number appended to the ID. We want to strip this out.
-        if re.match('^ENS(MUS)*T', self.name):
-            m = re.match('^ENS(MUS)*T\d+', self.name)
-            return m.group()
-        return self.name
+    def _join_names(self):
+        return get_stripped_name(self.name) + "_" + get_stripped_name(self.name2)
+
+def get_stripped_name(name):
+    # If Gencode tables are supplied, the Ensembl transcript ID has a
+    # version number appended to the ID. We want to strip this out.
+    if re.match('^ENS\w*T', name):
+        m = re.match('^ENS\w*T\d+', name)
+        return m.group()
+    return name
 
 
 def main(args, fout=sys.stdout):
@@ -121,6 +133,8 @@ def main(args, fout=sys.stdout):
                         'Transcript type']].drop_duplicates()
     conn = conn.set_index(['Transcript stable ID'])
 
+    max_warnings = 10
+    w = 0
     c = 0
     n = 0
     for row in fileinput.input(args.annotation_file[0],
@@ -129,9 +143,14 @@ def main(args, fout=sys.stdout):
         if fileinput.isfirstline() and not args.no_header:
             continue
         n = n + 1
-        
+
+        try:
+            row = row.decode()
+        except AttributeError:
+            pass
+
         if re.match(r"^#", row):
-            c = c + 1
+            #   c = c + 1
             continue
 
         rowobj = Row(row, args.no_header)
@@ -139,6 +158,16 @@ def main(args, fout=sys.stdout):
         if not args.no_skip_random_chromosomes and \
             rowobj.is_on_random_chromosome():
             c = c + 1
+            continue
+
+        if rowobj.chromosome_contains_underscore():
+            w = w + 1
+            if w == max_warnings:
+                warnings.warn("Suppressing chromosome warnings...", Warning)
+            elif w < max_warnings:
+                warnings.warn("Skipping %s as chromosome %s contains "
+                              "underscores." % (rowobj.name, rowobj.chrom),
+                              Warning)
             continue
 
         # filter for only protein-coding genes
@@ -152,7 +181,7 @@ def main(args, fout=sys.stdout):
 
         # filter for only protein-coding genes
         try:
-            result = conn.loc[rowobj.get_stripped_name()]
+            result = conn.loc[get_stripped_name(rowobj.name)]
             if isinstance(result, pd.DataFrame):
                 result = result.iloc[0, ]
             if not (result['Gene type'] == "protein_coding" and
@@ -173,8 +202,8 @@ def main(args, fout=sys.stdout):
     fileinput.close()
     # conn.close()
     if float(c) / float(n) > 0.75:
-        print("Warning: %d/%d (%0.2f%%) were skipped. Are you using the "
-              "correct database?" % (c, n, float(c)/float(n)), file=sys.stderr)
+        warnings.warn("%d/%d (%0.2f%%) were skipped. Are you using the "
+              "correct database?" % (c, n, float(c)/float(n)), Warning)
 
 
 if __name__ == '__main__':
