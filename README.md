@@ -61,8 +61,7 @@ environment](#conda-virtual-environment)** section below.
 
 ## Conda virtual environment
 
-If [Anaconda](https://www.anaconda.com/distrubtion/) is already
-installed, a conda virtual environment for QAPA can be created using the
+A conda virtual environment for QAPA can be created using the
 provided `environment.yml` file:
 
     git clone https://github.com/morrislab/qapa.git
