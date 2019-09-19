@@ -61,18 +61,13 @@ class Interval:
                 self.strand, self.gene_id]
 
     def _guess_species(self, species=None):
-        _species = 'unk'
         if re.match(r'ENST\d+', self.name):
             return 'hsa'
         elif re.match(r'ENSMUST\d+', self.name):
             return 'mmu'
         elif species is not None:
-            _species = species
-        else:
-            logger.debug("Could not guess species from gene name!"
-                " To disable this warning, use --species option")
-        logger.debug("Setting species name to: %s" % (_species))
-        return _species
+            return species
+        return 'unk'
 
 
 def overlaps(a, b, dist5, dist3):
