@@ -44,7 +44,7 @@ class AnnotateTestCase(unittest.TestCase):
         self.assertEqual(target.start, 24)
 
     def test_preprocess_gencode(self):
-        result = anno.preprocess_gencode_polya("files/gencode.polya.example.bed")
+        result = anno.preprocess_gencode_polya("python/files/gencode.polya.example.bed")
 
         # Test no polya_signals
         count = 0
@@ -57,7 +57,7 @@ class AnnotateTestCase(unittest.TestCase):
 
     def test_preprocess_polyasite_v1(self):
         with self.assertLogs("qapa", level="INFO") as cm:
-            result = anno.preprocess_polyasite("files/polyasite_v1.example.bed", 2)
+            result = anno.preprocess_polyasite("python/files/polyasite_v1.example.bed", 2)
         self.assertIn("Detected PolyASite version 1", cm.output[1])
 
         count = 0
@@ -69,7 +69,7 @@ class AnnotateTestCase(unittest.TestCase):
 
     def test_preprocess_polyasite_v2(self):
         with self.assertLogs("qapa", level="INFO") as cm:
-            result = anno.preprocess_polyasite("files/polyasite_v2.example.bed", 2)
+            result = anno.preprocess_polyasite("python/files/polyasite_v2.example.bed", 2)
         self.assertIn("Detected PolyASite version 2", cm.output[1])
 
         count = 0
