@@ -196,7 +196,7 @@ def main(args, input_filename, fout=sys.stdout):
         validate(custom, args.other)
         sites = sort_bed(custom)
     elif not args.no_annotation:
-        gencode = preprocess_polyasite(args.gencode_polya)
+        gencode = preprocess_gencode_polya(args.gencode_polya)
 
         polyasite_te = preprocess_polyasite(args.polyasite, args.min_polyasite)
 
