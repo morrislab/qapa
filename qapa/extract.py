@@ -59,9 +59,9 @@ class Row:
             bed.append(self.name2)
             bed.append(','.join([str(x) for x in self.exonStarts]))
             bed.append(','.join([str(x) for x in self.exonEnds]))
-        else:
-            logger.debug("Skipping %s because it contains an intron in 3' UTR" %
-                    self.name)
+        #else:
+            #logger.debug("Skipping %s because it contains an intron in 3' UTR" %
+                    #self.name)
         return bed
 
     def extract_3utr(self, min_utr_length=0):
@@ -142,7 +142,7 @@ def main(args, fout=sys.stdout):
 
         if re.match(r"^#", row):
             if fileinput.isfirstline():
-                logger.debug("Header detected")
+                logger.debug("Header detected in genePred file.")
                 no_header = False
             continue
 
@@ -160,9 +160,6 @@ def main(args, fout=sys.stdout):
                 logger.warning("Skipping chromosome %s because it contains"
                                " underscores" % rowobj.chrom)
                 bad_chroms.add(rowobj.chrom)
-
-            logger.debug("Skipping %s as chromosome %s contains "
-                          "underscores." % (rowobj.name, rowobj.chrom))
             continue
 
         # filter for only protein-coding genes

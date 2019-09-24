@@ -189,9 +189,6 @@ Output is in BED format plus additional gene symbol column
             logger.info("Option -o (custom BED) will be used for build phase and "
                    "-g and -p will be ignored")
 
-        if args.no_annotation:
-            logger.info("Annotation step will be skipped")
-
         if not (args.species is None or \
                 re.match(r'^[a-zA-Z0-9]+$', args.species)):
             parser.error("Species must be alphanumeric.")

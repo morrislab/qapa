@@ -82,7 +82,8 @@ def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False
     if dist_from_three_prime > min_distance and \
             not custom and \
             int(feature[site_numsamples]) < min_intermediate_pas:
-        logger.debug("Skipping {}".format(feature.name)) 
+        #logger.debug("Skipping {}. Distance from 3' end: {}"\
+                     #.format(feature[0:6], dist_from_three_prime)) 
         return None
 
     return feature
@@ -219,6 +220,7 @@ def main(args, input_filename, fout=sys.stdout):
     if args.no_annotation:
         overlap_utrs = utrs.each(restore_feature)\
                            .saveas()
+        logger.info("Skipping annotation step")
     else: 
         overlap_utrs = utrs.intersect(sites, s=True, wa=True, wb=True)\
                            .each(restore_feature)\

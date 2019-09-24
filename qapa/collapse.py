@@ -118,7 +118,7 @@ def merge_bed(args, inputfile):
             if same_gene(prev_interval, my_interval):
                 prev_interval.merge(my_interval)
             else:
-                logger.warning("Skipping overlapping but different "
+                logger.debug("Skipping overlapping but different "
                       "genes %s and %s" %
                       (prev_interval.gene_id, my_interval.gene_id))
                 overlap_diff_genes.add(prev_interval.gene_id)
