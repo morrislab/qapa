@@ -76,6 +76,7 @@ class AnnotateTestCase(unittest.TestCase):
         for item in result:
             self.assertTrue(re.match(r"^chr", item[0]))
             self.assertEqual(item[0], "chrX")
+            self.assertGreaterEqual(int(item[4]), 2)
             count += 1
         self.assertEqual(count, 3)
 

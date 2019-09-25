@@ -55,13 +55,13 @@ def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False
         return feature
 
     # Update cluster poly(A) site coordinates if match is from PolyAsite
-    match = re.match(r'chr.*:(\d+):.*', feature[site_name])
+    match = re.match(r'(chr)?.*:(\d+):.*', feature[site_name])
     if match and not custom:
         if feature.strand == "+":
-            feature[site_end] = int(match.group(1))
+            feature[site_end] = int(match.group(2))
             feature[site_start] = int(feature[site_end]) - 1
         else:
-            feature[site_start] = int(match.group(1))
+            feature[site_start] = int(match.group(2))
             feature[site_end] = int(feature[site_start]) + 1
 
     # Update 3' end coordinate
@@ -111,6 +111,10 @@ def _add_chr(feature):
     feature.chrom = 'chr' + feature.chrom
     return feature
 
+def _move_num_exp(feature):
+    # Move number of experiments field to score field
+    feature.score = feature[7]
+    return feature
 
 def sort_bed(bedobj):
     """
@@ -129,6 +133,7 @@ def preprocess_gencode_polya(gencode_polya_file):
     gencode = pybedtools.BedTool(gencode_polya_file)\
         .filter(lambda x: x.name == 'polyA_site')\
         .saveas()
+    gencode = sort_bed(gencode)
     validate(gencode, gencode_polya_file)
     return gencode
 
@@ -138,28 +143,30 @@ def preprocess_polyasite(polyasite_file, min_polyasite):
     Pre-proecess polyasite file
     """
     logger.info("Preprocessing %s" % polyasite_file)
+    # add an empty filter step as hack to read gzipped files
     polyasite = pybedtools.BedTool(polyasite_file)\
+        .filter(lambda x: x)\
         .saveas()
-    validate(polyasite, polyasite_file)
     polyasite = sort_bed(polyasite)
+    validate(polyasite, polyasite_file)
 
     pas_filter = re.compile("(DS|TE)$")
     is_v2 = polyasite.field_count() == 11 
 
-    if is_v2:
-        logger.info("Detected PolyASite version 2")
-        field_index = 9
-        num_exp = 7
-
-    else:
+    if not is_v2:
         logger.info("Detected PolyASite version 1")
         field_index = 3
-        num_exp = 4
+    else:
+        logger.info("Detected PolyASite version 2")
+        field_index = 9
+        polyasite = polyasite.each(_add_chr)\
+                             .each(_move_num_exp)\
+                             .saveas()
+
     polyasite_te = polyasite\
-        .filter(lambda x: int(x[num_exp]) >= min_polyasite)\
+        .filter(lambda x: int(x[4]) >= min_polyasite)\
         .filter(lambda x: pas_filter.search(x[field_index]))\
         .cut(range(0, 6))\
-        .each(_add_chr)\
         .saveas()
     validate(polyasite_te, polyasite_file)
     return polyasite_te
