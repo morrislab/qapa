@@ -41,7 +41,8 @@ Note: unless otherwise specified, all input files can be in compressed
                         help="set temp directory [{}]".
                         format(tempfile.gettempdir()))
     common.add_argument('--debug', action="store_true",
-                        help="Increase verbosity of log messages")
+                        help="Increase verbosity of log messages for"
+                        " troubleshooting.")
 
     # build utrs
     desc = """
@@ -109,10 +110,10 @@ Output is in BED format plus additional gene symbol column
                           "only have a gene model annotation file to build "
                           "a 3' UTR library.")
     optional.add_argument("--species", type=str,
-                          help="Set species descriptor. Useful if not using 'hg19' or "
-                          "'mm10', otherwise 'unk' is used.")
+                          help="Set species descriptor. Useful if not using 'hsa' or "
+                          "'mmu', otherwise 'unk' is used.")
     optional.add_argument("-c", "--cores", type=int,
-                          help="Set the number of cores for multiprocessing. "
+                          help="The number of cores for multiprocessing. "
                           "Defaults to using all available cores.")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
