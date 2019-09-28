@@ -6,7 +6,7 @@ from qapa import fasta
 class FastaTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.fasta_file = "files/test.fa"
+        self.fasta_file = "python/files/test.fa"
 
     def test_filter_sequences(self):
         output = StringIO()
