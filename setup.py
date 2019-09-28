@@ -3,8 +3,8 @@ import sys
 from setuptools import find_packages
 from distutils.core import setup
 
-if sys.version_info[0] == 3 and sys.version_info[:2] < (3, 5):
-    sys.stderr.write("At least Python 3.5 or later is required.\n")
+if sys.version_info[:2] < (3, 5):
+    sys.stderr.write("Error: at least Python 3.5 or later is required.\n")
     sys.exit(1)
 
 here = os.path.abspath(os.path.dirname(__file__))
