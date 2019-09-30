@@ -107,14 +107,14 @@ class Row:
     def _join_names(self):
         return get_stripped_name(self.name) + "_" + get_stripped_name(self.name2)
 
+
 def get_stripped_name(name):
     # If Gencode tables are supplied, the Ensembl transcript ID has a
     # version number appended to the ID. We want to strip this out.
-    if re.match('^ENS\w*T', name):
-        m = re.match('^ENS\w*T\d+', name)
-        return m.group()
+    match = re.match('ENS\w*T\d+', name)
+    if match:
+        return match.group()
     return name
-
 
 def main(args, fout=sys.stdout):
     if args.debug:
@@ -140,7 +140,7 @@ def main(args, fout=sys.stdout):
         except AttributeError:
             pass
 
-        if re.match(r"^#", row):
+        if row.startswith("#"):
             if fileinput.isfirstline():
                 logger.debug("Header detected in genePred file.")
                 no_header = False

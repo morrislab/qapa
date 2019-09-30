@@ -106,7 +106,7 @@ def resolve_overlaps(feature):
 
 
 def _add_chr(feature):
-    if re.match(r"^chr", feature.chrom):
+    if feature.chrom.startswith("chr"):
         return feature
     feature.chrom = 'chr' + feature.chrom
     return feature

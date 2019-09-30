@@ -53,6 +53,9 @@ class RowTestCase(unittest.TestCase):
         target = get_stripped_name("ENSRNOT00000100750.11")
         self.assertEqual(target, "ENSRNOT00000100750")
 
+        target = get_stripped_name("ENST00123")
+        self.assertEqual(target, "ENST00123")
+
 if __name__ == '__main__':
     #print sys.argv[0]
     unittest.main()

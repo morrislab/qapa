@@ -61,9 +61,9 @@ class Interval:
                 self.strand, self.gene_id]
 
     def _guess_species(self, species=None):
-        if re.match(r'ENST\d+', self.name):
+        if self.name.startswith('ENST0'):
             return 'hsa'
-        elif re.match(r'ENSMUST\d+', self.name):
+        elif self.name.startswith('ENSMUST0'):
             return 'mmu'
         elif species is not None:
             return species
