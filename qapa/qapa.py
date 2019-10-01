@@ -107,7 +107,7 @@ Output is in BED format plus additional gene symbol column
                           "'mmu', otherwise 'unk' is used.")
     optional.add_argument("-c", "--cores", type=int,
                           help="The number of cores for multiprocessing. "
-                          "Defaults to using all available cores.")
+                          "Defaults to all available cores.")
     optional.add_argument("-H", "--no_header", action='store_true',
                           help="(Deprecated) Annotation table (genePred) has no header. "
                           "Use this option if your input table was created "
