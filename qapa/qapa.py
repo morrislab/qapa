@@ -6,7 +6,6 @@ import argparse
 import tempfile
 import logging
 
-from . import extract, annotate, extend, collapse, fasta
 from .version import __version__
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr,
@@ -210,6 +209,7 @@ Output is in BED format plus additional gene symbol column
 
 
 def build(args):
+    from . import extract, extend, annotate, collapse
     tf1 = tempfile.NamedTemporaryFile(mode='w', prefix='qapa_extract_',
                                       delete=False)
     tf2 = tempfile.NamedTemporaryFile(mode='w', prefix='qapa_anno_',
@@ -251,6 +251,7 @@ def build(args):
 
 
 def fetch_sequences(args):
+    from . import fasta
     fasta.main(args)
     logger.info("Sequences written to {}".format(args.output_file[0]))
 
@@ -282,8 +283,8 @@ def quant(args):
 
 
 def main():
-    logger.info("Version %s" % __version__)
     args = getoptions()
+    logger.info("Version %s" % __version__)
     if args.debug:
         logger.setLevel(logging.DEBUG)
 
