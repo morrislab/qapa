@@ -38,7 +38,7 @@ Note: unless otherwise specified, all input files can be in compressed
     # common args
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument('-t', '--temp', type=str,
-                        help="set temp directory [{}]".
+                        help="Set temp directory [{}]".
                         format(tempfile.gettempdir()))
     common.add_argument('--debug', action="store_true",
                         help="Increase verbosity of log messages for"
@@ -60,8 +60,7 @@ Output is in BED format plus additional gene symbol column
                                          parents=[common])
     optional = build_parser._action_groups.pop()
     build_parser.add_argument('annotation_file', nargs=1,
-                              help="input annotation table")
-    # build_parser.add_argument('output_file', nargs=1, help='output filename')
+                              help="Input annotation table")
 
     required = build_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
@@ -72,10 +71,10 @@ Output is in BED format plus additional gene symbol column
                           help="PolyAsite database")
     optional.add_argument('-m', '--min_polyasite', dest="min_polyasite",
                           type=int, default=3,
-                          help="minimum score in PolyAsite [%(default)s]")
+                          help="Minimum score in PolyAsite [%(default)s]")
     optional.add_argument('-i', '--intermediate_polyasite',
                           dest="intermediate_polyasite", type=int, default=4,
-                          help="minimum score in PolyAsite for creating "
+                          help="Minimum score in PolyAsite for creating "
                           "intermedate PAS entries [%(default)s]")
     optional.add_argument("-e", type=int, default=0,
                           dest="numextends", metavar="DISTANCE",
@@ -85,10 +84,10 @@ Output is in BED format plus additional gene symbol column
                           "internal 3' UTRs. [%(default)s]")
     optional.add_argument("-d", type=int, default=24,
                           dest="dist3", metavar="DISTANCE",
-                          help="maximum distance between 3' ends to merge [%(default)s]")
+                          help="Maximum distance between 3' ends to merge [%(default)s]")
     optional.add_argument("-f", type=int, default=3,
                           dest="dist5", metavar="DISTANCE",
-                          help="maximum distance between 5' ends to merge [%(default)s]")
+                          help="Maximum distance between 5' ends to merge [%(default)s]")
     optional.add_argument("-o", "--other", default=None,
                           help="Use this option to annotate 3' UTRs with a "
                           "custom BED file of poly(A) sites. This option "
@@ -100,11 +99,6 @@ Output is in BED format plus additional gene symbol column
                           " '^(chr)*[0-9XYM]+$'")
     optional.add_argument("-s", "--save", action='store_true',
                           help="Don't automatically delete intermediate files")
-    optional.add_argument("-H", "--no_header", action='store_true',
-                          help="(Deprecated) Annotation table (genePred) has no header. "
-                          "Use this option if your input table was created "
-                          "using gtfToGenePred -genePredExt. This option is "
-                          "no longer required as of v1.3.")
     optional.add_argument("-N", "--no_annotation", action='store_true',
                           help="Skip annotation step. Use this option if you "
                           "only have a gene model annotation file to build "
@@ -115,6 +109,11 @@ Output is in BED format plus additional gene symbol column
     optional.add_argument("-c", "--cores", type=int,
                           help="The number of cores for multiprocessing. "
                           "Defaults to using all available cores.")
+    optional.add_argument("-H", "--no_header", action='store_true',
+                          help="(Deprecated) Annotation table (genePred) has no header. "
+                          "Use this option if your input table was created "
+                          "using gtfToGenePred -genePredExt. This option is "
+                          "no longer required as of v1.3.")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
 
@@ -126,10 +125,10 @@ Output is in BED format plus additional gene symbol column
                                          help="extract FASTA "
                                          "sequences from BED file",
                                          parents=[common])
-    fasta_parser.add_argument('bed_file', nargs=1, help='input BED filename')
-    fasta_parser.add_argument('output_file', nargs=1, help='output filename')
+    fasta_parser.add_argument('bed_file', nargs=1, help='Input BED filename')
+    fasta_parser.add_argument('output_file', nargs=1, help='Output filename')
     optional = fasta_parser._action_groups.pop()
-    required = fasta_parser.add_argument_group('required named arguments')
+    required = fasta_parser.add_argument_group('Required named arguments')
     required.add_argument('-f', '--fi', type=str, dest='genome', required=True,
                           help='Genome FASTA file (*uncompressed)')
     fasta_parser.set_defaults(func=fetch_sequences)
@@ -145,7 +144,7 @@ Output is in BED format plus additional gene symbol column
                                               'samples',
                                          parents=[common])
     quant_parser.add_argument('quant_files', nargs='+',
-                              help="filepaths of one or more 3' UTR "
+                              help="Filepaths of one or more 3' UTR "
                                    "quantification files. Expects each file "
                                    "to be inside its own directory (e.g. "
                                    "./path/to/samples_*/quant.sf). The "
@@ -154,17 +153,17 @@ Output is in BED format plus additional gene symbol column
     optional = quant_parser._action_groups.pop()
     required = quant_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
-                          help="ensembl gene identifier table")
+                          help="Ensembl gene identifier table")
     optional.add_argument('-f', '--field', type=str, metavar='FIELD',
                           default='TPM',
-                          help='field to merge [%(default)s]')
+                          help='Field to merge [%(default)s]')
     optional.add_argument('-F', '--format', type=str, metavar='FORMAT',
                           choices=['sailfish', 'salmon'], default='salmon',
-                          help="specify transcript quantification method. For "
+                          help="Specify transcript quantification method. For "
                                "Sailfish v0.8 or earlier, use 'sailfish'. "
                                "Otherwise, use 'salmon'. [%(default)s]")
     optional.add_argument('-s', '--save', type=str, metavar='FILE',
-                          help='save intermediate file of merged samples as '
+                          help='Save intermediate file of merged samples as '
                                'FILE')
     quant_parser.set_defaults(func=quant)
     quant_parser._action_groups.append(optional)
