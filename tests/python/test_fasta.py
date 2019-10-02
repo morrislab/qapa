@@ -18,7 +18,6 @@ class FastaTestCase(unittest.TestCase):
         self.assertIn(">seq2", results)
         self.assertIn(">seq3", results)
 
-
-        
-        
+if __name__ == '__main__':
+    unittest.main()
 

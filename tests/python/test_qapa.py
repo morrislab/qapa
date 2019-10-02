@@ -70,4 +70,6 @@ class QapaTestCase(unittest.TestCase):
             r'compute_pau.R')
 
 
+if __name__ == '__main__':
+    unittest.main()
 

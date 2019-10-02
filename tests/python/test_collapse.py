@@ -30,3 +30,6 @@ class CollapseTestCase(unittest.TestCase):
         result = collapse.overlaps(self.interval_a, self.interval_b, 10)
         self.assertFalse(result)
 
+if __name__ == '__main__':
+    unittest.main()
+

@@ -57,5 +57,4 @@ class RowTestCase(unittest.TestCase):
         self.assertEqual(target, "ENST00123")
 
 if __name__ == '__main__':
-    #print sys.argv[0]
     unittest.main()
