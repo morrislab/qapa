@@ -4,7 +4,6 @@
 # coordinate.
 
 import sys
-import re
 import pandas as pd
 import numpy as np
 import logging
@@ -13,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 class Interval:
     def __init__(self, l, sp=None):
-        #l = line.rstrip().split("\t")
         self.chrom = l[0]
         self.start = int(l[1])
         self.end = int(l[2])
@@ -24,7 +22,6 @@ class Interval:
         self.start2 = int(l[6])
         self.end2 = int(l[7])
         self.gene_id = l[8]
-        #self.utr_id = l[9]
         self.species = self._guess_species(sp)
 
     def is_forward(self):
@@ -35,7 +32,7 @@ class Interval:
         '''
         self.start = min(self.start, b.start)
         self.end = max(self.end, b.end)
-        if not re.search(b.name, self.name):
+        if b.name not in self.name:
             self.name = self.name + "," + b.name
         self.start2 = min(self.start2, b.start2)
         self.end2 = max(self.end2, b.end2)
