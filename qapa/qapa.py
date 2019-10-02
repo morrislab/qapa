@@ -59,7 +59,10 @@ Output is in BED format plus additional gene symbol column
                                          parents=[common])
     optional = build_parser._action_groups.pop()
     build_parser.add_argument('annotation_file', nargs=1,
-                              help="Input annotation table")
+                              help="Input annotation table in genePred format."
+                              " Recognizes UCSC tables or genePred files "
+                              " generated from GTF format using 'gtfToGenePred"
+                              " -genePredExt' command.")
 
     required = build_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
@@ -169,12 +172,6 @@ Output is in BED format plus additional gene symbol column
 
     args = parser.parse_args(args=args)
 
-    if args.temp:
-        if not os.path.exists(args.temp):
-            parser.error("No such directory: {}".format(args.temp))
-        logger.info("Setting temporary directory to {}".format(args.temp))
-        tempfile.tempdir = args.temp
-
     if args.subcommand == 'build':
         _check_input_files([args.polyasite, args.gencode_polya, args.db,
                             args.other, args.annotation_file[0]], build_parser)
@@ -201,6 +198,14 @@ Output is in BED format plus additional gene symbol column
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
     elif args.subcommand == 'quant':
         _check_input_files([args.db], quant_parser)
+    else:
+        parser.error("Specify sub-command: 'build', 'fasta', 'quant'")
+
+    if args.temp:
+        if not os.path.exists(args.temp):
+            parser.error("No such directory: {}".format(args.temp))
+        logger.info("Setting temporary directory to {}".format(args.temp))
+        tempfile.tempdir = args.temp
 
     return args
 
