@@ -87,9 +87,9 @@ Output is in BED format plus additional gene symbol column
     optional.add_argument("-d", type=int, default=24,
                           dest="dist3", metavar="DISTANCE",
                           help="Maximum distance between 3' ends to merge [%(default)s]")
-    optional.add_argument("-f", type=int, default=3,
+    optional.add_argument("-f", type=int, default=None,
                           dest="dist5", metavar="DISTANCE",
-                          help="Maximum distance between 5' ends to merge [%(default)s]")
+                          help="(Deprecated) Maximum distance between 5' ends to merge [%(default)s]")
     optional.add_argument("-o", "--other", default=None,
                           help="Use this option to annotate 3' UTRs with a "
                           "custom BED file of poly(A) sites. This option "
@@ -188,6 +188,10 @@ Output is in BED format plus additional gene symbol column
         if not (args.species is None or \
                 re.match(r'^[a-zA-Z0-9]+$', args.species)):
             parser.error("Species must be alphanumeric.")
+
+        if args.dist5 is not None:
+            logger.warning("DEPRECATION NOTICE: As of v1.3.0, the --dist5 option"
+                           " is no longer used.")
 
         if args.no_header:
             logger.warning("DEPRECATION NOTICE: As of v1.3.0, it is no longer "

@@ -67,7 +67,7 @@ class Interval:
         return 'unk'
 
 
-def overlaps(a, b, dist5, dist3):
+def overlaps(a, b, dist3):
     '''Determine if two intervals have close 3' ends'''
 
     if a.chrom == b.chrom and a.strand == b.strand:
@@ -111,7 +111,7 @@ def merge_bed(args, inputfile):
 
         if prev_interval is None:
             prev_interval = my_interval
-        elif overlaps(prev_interval, my_interval, args.dist5, args.dist3):
+        elif overlaps(prev_interval, my_interval, args.dist3):
             if same_gene(prev_interval, my_interval):
                 prev_interval.merge(my_interval)
             else:
