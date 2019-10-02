@@ -2,16 +2,14 @@
 # complete poly(A) site coordinates from PolyAsite database and GENCODE poly(A)
 # site track
 
-from __future__ import print_function
 import sys
 import os
 import pybedtools
 from pybedtools import featurefuncs
 import re
-from . import utils
+import logging
 
-_TAG = 'annotate'
-
+logger = logging.getLogger(__name__)
 
 def extend_feature(feature, length=24):
     """Extend the 3' end by length
@@ -57,13 +55,13 @@ def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False
         return feature
 
     # Update cluster poly(A) site coordinates if match is from PolyAsite
-    match = re.match(r'chr.*:(\d+):.*', feature[site_name])
+    match = re.match(r'(chr)?.*:(\d+):.*', feature[site_name])
     if match and not custom:
         if feature.strand == "+":
-            feature[site_end] = int(match.group(1))
+            feature[site_end] = int(match.group(2))
             feature[site_start] = int(feature[site_end]) - 1
         else:
-            feature[site_start] = int(match.group(1))
+            feature[site_start] = int(match.group(2))
             feature[site_end] = int(feature[site_start]) + 1
 
     # Update 3' end coordinate
@@ -84,7 +82,8 @@ def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False
     if dist_from_three_prime > min_distance and \
             not custom and \
             int(feature[site_numsamples]) < min_intermediate_pas:
-        #print("Skipping {}".format(feature.name), file=sys.stderr)
+        #logger.debug("Skipping {}. Distance from 3' end: {}"\
+                     #.format(feature[0:6], dist_from_three_prime)) 
         return None
 
     return feature
@@ -106,6 +105,17 @@ def resolve_overlaps(feature):
     return feature
 
 
+def _add_chr(feature):
+    if feature.chrom.startswith("chr"):
+        return feature
+    feature.chrom = 'chr' + feature.chrom
+    return feature
+
+def _move_num_exp(feature):
+    # Move number of experiments field to score field
+    feature.score = feature[7]
+    return feature
+
 def sort_bed(bedobj):
     """
     Use GNU sort
@@ -113,6 +123,53 @@ def sort_bed(bedobj):
     tmpbed = bedobj._tmp()
     os.system('sort {0} -k1,1 -k2,2n -k3,3n > {1}'.format(bedobj.fn, tmpbed))
     return pybedtools.BedTool(tmpbed)
+
+
+def preprocess_gencode_polya(gencode_polya_file):
+    """
+    Preprocess GENCODE polyA track
+    """
+    logger.info("Preprocessing %s" % gencode_polya_file)
+    gencode = pybedtools.BedTool(gencode_polya_file)\
+        .filter(lambda x: x.name == 'polyA_site')\
+        .saveas()
+    gencode = sort_bed(gencode)
+    validate(gencode, gencode_polya_file)
+    return gencode
+
+
+def preprocess_polyasite(polyasite_file, min_polyasite):
+    """
+    Pre-proecess polyasite file
+    """
+    logger.info("Preprocessing %s" % polyasite_file)
+    # add an empty filter step as hack to read gzipped files
+    polyasite = pybedtools.BedTool(polyasite_file)\
+        .filter(lambda x: x)\
+        .saveas()
+    polyasite = sort_bed(polyasite)
+    validate(polyasite, polyasite_file)
+
+    pas_filter = re.compile("(DS|TE)$")
+    is_v2 = polyasite.field_count() == 11 
+
+    if not is_v2:
+        logger.info("Detected PolyASite version 1")
+        field_index = 3
+    else:
+        logger.info("Detected PolyASite version 2")
+        field_index = 9
+        polyasite = polyasite.each(_add_chr)\
+                             .each(_move_num_exp)\
+                             .saveas()
+
+    polyasite_te = polyasite\
+        .filter(lambda x: int(x[4]) >= min_polyasite)\
+        .filter(lambda x: pas_filter.search(x[field_index]))\
+        .cut(range(0, 6))\
+        .saveas()
+    validate(polyasite_te, polyasite_file)
+    return polyasite_te
 
 
 def validate(bedobj, filename):
@@ -123,15 +180,16 @@ def validate(bedobj, filename):
     try:
         ft = bedobj.file_type
         if ft == 'empty':
-            utils.eprint("BED file %s is empty!" % filename, tag=_TAG)
+            logger.error("BED file %s is empty!" % filename)
             sys.exit(1)
     except IndexError as err:
-        utils.eprint("%s. Error reading the BED file %s." % (err, filename) +
-                     " Is the file properly formatted?", tag=_TAG)
-        sys.exit(1)
+        logger.error("%s. Error reading the BED file %s." % (err, filename) +
+                     " Is the file properly formatted?")
 
 
 def main(args, input_filename, fout=sys.stdout):
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     # Load intervals
     fin = sys.stdin if input_filename == '-' else input_filename
@@ -140,26 +198,16 @@ def main(args, input_filename, fout=sys.stdout):
 
     # Load databases with pybedtools
     if args.other:
+        logger.info("Annotating with %s" % args.other)
         custom_mode = True
         custom = pybedtools.BedTool(args.other)
         validate(custom, args.other)
         sites = sort_bed(custom)
     elif not args.no_annotation:
-        pas_filter = re.compile("(DS|TE)$")
-        gencode = pybedtools.BedTool(args.gencode_polya)\
-            .filter(lambda x: x.name == 'polyA_site')\
-            .saveas()
-        validate(gencode, args.gencode_polya)
-        polyasite = pybedtools.BedTool(args.polyasite)\
-            .cut(range(0, 6))\
-            .filter(lambda x: int(x.score) >= args.min_polyasite)\
-            .saveas()
-        validate(polyasite, args.polyasite)
-        polyasite = sort_bed(polyasite)
+        gencode = preprocess_gencode_polya(args.gencode_polya)
 
-        polyasite_te = polyasite\
-            .filter(lambda x: pas_filter.search(x.name))\
-            .saveas()
+        polyasite_te = preprocess_polyasite(args.polyasite, args.min_polyasite)
+
         sites = gencode.cat(polyasite_te, postmerge=False)
 
         # Downstream 1kb PAS
@@ -179,6 +227,7 @@ def main(args, input_filename, fout=sys.stdout):
     if args.no_annotation:
         overlap_utrs = utrs.each(restore_feature)\
                            .saveas()
+        logger.info("Skipping annotation step")
     else: 
         overlap_utrs = utrs.intersect(sites, s=True, wa=True, wb=True)\
                            .each(restore_feature)\
@@ -236,6 +285,3 @@ def main(args, input_filename, fout=sys.stdout):
     fout.write("\t".join(header) + "\n")
     fout.write(str(overlap_utrs))
 
-
-if __name__ == '__main__':
-    pass

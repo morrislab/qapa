@@ -15,7 +15,7 @@ other tools such as [Sailfish](https://github.com/kingsfordgroup/sailfish) and
 
 # Installation
 
-QAPA consists of both Python (2.7+ or 3.5+) and R scripts.
+QAPA consists of both Python (3.5+) and R scripts.
 
 1. Install the following software pre-requisites:
     1. [bedtools](https://github.com/arq5x/bedtools2). *Note: do not use 2.26.0

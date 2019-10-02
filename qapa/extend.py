@@ -13,6 +13,9 @@
 
 import sys
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def is_plus(strands):
@@ -97,10 +100,6 @@ def _extend(feature, most_five_prime, forward, num_extends=0):
     newfeature = pd.concat([feature, block_cols])
     newfeature['start'] = interval_start
     newfeature['end'] = interval_end
-    #if forward:
-        #newfeature['lastexon_cds_start'] = interval_start
-    #else:
-        #newfeature['lastexon_cds_end'] = interval_end
     return newfeature
 
 
@@ -134,6 +133,9 @@ def extend_5prime(feature_group, numextends=0):
 
 
 def main(args, input_filename):
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+
     if input_filename == '-':
         df = pd.read_table(sys.stdin)
     else:
@@ -141,10 +143,21 @@ def main(args, input_filename):
 
     # Process each group
     newdf = []
-    for name2, group in df.groupby('name2'):
-        newdf.append(extend_5prime(group, args.numextends))
+
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+
+    with ProcessPoolExecutor(args.cores) as executor:
+        futures = {executor.submit(extend_5prime, group, args.numextends): name2 \
+                    for name2, group in df.groupby('name2')}
+        for future in as_completed(futures):
+            name2 = futures[future]
+            try:
+                newdf.append(future.result())
+            except Exception as exc:
+                logger.exception("Error extending %s: %s" % (name2, exc))
+
+    # for name2, group in tqdm(df.groupby('name2'), desc="extend"):
+    #     newdf.append(extend_5prime(group, args.numextends))
+
     return pd.concat(newdf).sort_values(['seqnames', 'start'])
 
-
-if __name__ == '__main__':
-    pass

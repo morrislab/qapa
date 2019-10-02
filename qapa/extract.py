@@ -1,14 +1,11 @@
-from __future__ import print_function
 import re
 import sys
-import warnings
 import fileinput
 import numpy as np
 import pandas as pd
-# import sqlite3
-from . import utils
+import logging
 
-_TAG = 'extract'
+logger = logging.getLogger(__name__)
 
 class Row:
     def __init__(self, row, no_header=False):
@@ -19,7 +16,9 @@ class Row:
             l.insert(0, "dummy")
         if len(l) < 13:
             raise ValueError("Insufficient number of columns in gene"
-                             " prediction file.")
+                             " prediction file: %s. If gtfToGenePred was used,"
+                             " please ensure that the -genePredExt option is"
+                             " enabled!" % row)
 
         self.name = l[1]
         self.chrom = l[2]
@@ -60,10 +59,9 @@ class Row:
             bed.append(self.name2)
             bed.append(','.join([str(x) for x in self.exonStarts]))
             bed.append(','.join([str(x) for x in self.exonEnds]))
-        else:
-            pass
-            # print >> sys.stderr, "Skipping " + self.name + " because it" + \
-            #" contains an intron in 3' UTR"
+        #else:
+            #logger.debug("Skipping %s because it contains an intron in 3' UTR" %
+                    #self.name)
         return bed
 
     def extract_3utr(self, min_utr_length=0):
@@ -109,24 +107,18 @@ class Row:
     def _join_names(self):
         return get_stripped_name(self.name) + "_" + get_stripped_name(self.name2)
 
+
 def get_stripped_name(name):
     # If Gencode tables are supplied, the Ensembl transcript ID has a
     # version number appended to the ID. We want to strip this out.
-    if re.match('^ENS\w*T', name):
-        m = re.match('^ENS\w*T\d+', name)
-        return m.group()
+    match = re.match('ENS\w*T\d+', name)
+    if match:
+        return match.group()
     return name
 
-
 def main(args, fout=sys.stdout):
-
-    # print "\t".join(["seqnames", "start", "end", "name", "utr_length", "strand",
-                     #"lastexon_cds_start", "lastexon_cds_end", "name2",
-                     #"exonStarts", "exonEnds"])
-
-    # conn = sqlite3.connect(args.db)
-
-    # query = "select gene_biotype, transcript_biotype from ensembl_id where transcript_id = ?"
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     conn = pd.read_table(args.db)
     conn = conn.loc[:, ['Transcript stable ID', 'Gene type',
@@ -137,11 +129,10 @@ def main(args, fout=sys.stdout):
     w = 0
     c = 0
     n = 0
+    no_header = True
+    bad_chroms = set()
     for row in fileinput.input(args.annotation_file[0],
                                openhook=fileinput.hook_compressed):
-        
-        if fileinput.isfirstline() and not args.no_header:
-            continue
         n = n + 1
 
         try:
@@ -149,11 +140,13 @@ def main(args, fout=sys.stdout):
         except AttributeError:
             pass
 
-        if re.match(r"^#", row):
-            #   c = c + 1
+        if row.startswith("#"):
+            if fileinput.isfirstline():
+                logger.debug("Header detected in genePred file.")
+                no_header = False
             continue
 
-        rowobj = Row(row, args.no_header)
+        rowobj = Row(row, no_header)
 
         if not args.no_skip_random_chromosomes and \
             rowobj.is_on_random_chromosome():
@@ -162,22 +155,12 @@ def main(args, fout=sys.stdout):
 
         if rowobj.chromosome_contains_underscore():
             w = w + 1
-            if w == max_warnings:
-                warnings.warn("Suppressing chromosome warnings...", Warning)
-            elif w < max_warnings:
-                warnings.warn("Skipping %s as chromosome %s contains "
-                              "underscores." % (rowobj.name, rowobj.chrom),
-                              Warning)
-            continue
 
-        # filter for only protein-coding genes
-        # result = conn.execute(query, (rowobj.get_stripped_name(),))
-        # result = result.fetchone()
-        # if result is None or \
-        #     not (result[0] == "protein_coding" and \
-        #     result[1] == "protein_coding"):
-        #         c = c + 1
-        #         continue
+            if rowobj.chrom not in bad_chroms:
+                logger.warning("Skipping chromosome %s because it contains"
+                               " underscores" % rowobj.chrom)
+                bad_chroms.add(rowobj.chrom)
+            continue
 
         # filter for only protein-coding genes
         try:
@@ -200,11 +183,7 @@ def main(args, fout=sys.stdout):
             c = c + 1
 
     fileinput.close()
-    # conn.close()
     if float(c) / float(n) > 0.75:
-        warnings.warn("%d/%d (%0.2f%%) were skipped. Are you using the "
-              "correct database?" % (c, n, float(c)/float(n)), Warning)
+        logger.warning("%d/%d (%0.2f%%) were skipped. Are you using the "
+              "correct database?" % (c, n, float(c)/float(n)))
 
-
-if __name__ == '__main__':
-    pass

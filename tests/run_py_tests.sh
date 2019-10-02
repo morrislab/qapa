@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in python/*_test.py
+for i in python/test_*.py
 do
     python $i
     echo -e "\n"
