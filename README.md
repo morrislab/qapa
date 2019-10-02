@@ -80,7 +80,8 @@ To run `build`, gene and poly(A) annotation sources need to be prepared:
 
 **A. Gene annotation**
 
-1. Ensembl gene metadata table from [Biomart](http://www.ensembl.org/biomart).
+1. Ensembl gene metadata table from
+   [Biomart](http://www.ensembl.org/biomart/martview).
 
    Human and mouse tables are provided in the `examples` folder.  To obtain a fresh
    copy, download a table of Ensembl Genes from Biomart with the following
@@ -120,11 +121,13 @@ To run `build`, gene and poly(A) annotation sources need to be prepared:
 
         gtfToGenePred -genePredExt custom_genes.gtf custom_genes.genedPred
 
+   Note that it is important to include the `-genePredExt` option!
+
 **B. Poly(A) site annotation**
 
 As of v1.2.0, this step is optional. Otherwise, two options are available:
 
-Option 1: standard approach using PolyASite and GENCODE poly(A) track (as described in the [paper](#citation))
+**Option 1**: standard approach using PolyASite and GENCODE poly(A) track (as described in the [paper](#citation))
 
 1. PolyASite database
 
@@ -140,37 +143,43 @@ Option 1: standard approach using PolyASite and GENCODE poly(A) track (as descri
             from wgEncodeGencodePolyaVM9 where name2 = 'polyA_site'" -N mm10 \
             > gencode.polyA_sites.bed
 
-Option 2: use custom BED track of poly(A) sites
+**Option 2**: use custom BED track of poly(A) sites
 
 A custom BED file of poly(A) sites can be used to annotate 3′ UTRs.
 Each entry must contain the start (0-based) and end coordinate of a poly(A)
 site.
 
-### Build library
+### Commands 
 
 Once the data files have been prepared, we can then use `build` to create the 3'
-UTR library. The following describes several example use cases:
+UTR library. See `qapa build -h` for usage details. The following
+describes several example use cases:
 
-To extract 3′ UTRs from annotation, run:
+1. To extract 3′ UTRs from annotation, run:
 
     qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
 
-If using a custom BED file, replace the `-g` and `-p` options with `-o`:
+2. If using a custom BED file, replace the `-g` and `-p` options with `-o`:
 
     qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
 
-If using a custom genePred file converted from GTF, include the `-H`
-option:
+3. If using a custom genePred file converted from GTF, supply the file as in 1.
+   (e.g. the first positional argument):
 
-    qapa build -H --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
+    qapa build --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
  
-If bypassing the poly(A) annotation step, include the `-N` option:
+4. If bypassing the poly(A) annotation step, include the `-N` option:
 
     qapa build -N --db ensembl_identifiers.txt gencode.basic.txt > output.utrs.bed
 
 Results will be saved in the file `output_utrs.bed` (default is STDOUT).
 It is important that the sequence IDs are not modified as it will be parsed by
 `quant` below. 
+
+Additional notes:
+  - 3' UTRs that contain introns will be skipped.
+  - Chromosome names that contain underscores are currently not supported and will be
+    skipped.
 
 ## Extract 3′ UTR sequences (`fasta`)
 
