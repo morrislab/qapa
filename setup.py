@@ -31,6 +31,7 @@ setup(name='qapa',
               'qapa = qapa.qapa:main'
           ]
       },
+      python_requires='~=3.5',
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
