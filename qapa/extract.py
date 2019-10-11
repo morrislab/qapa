@@ -1,7 +1,6 @@
 import re
 import sys
 import fileinput
-import numpy as np
 import pandas as pd
 import logging
 
@@ -47,12 +46,12 @@ class Row:
         if not self.has_intron_in_3utr and \
                 self.get_3utr_length() >= min_utr_length:
             if self.strand == "+":
-                start = np.max([self.exonStarts[-n], self.cdsStart])
+                start = max([self.exonStarts[-n], self.cdsStart])
                 bed = [self.chrom, start, self.txEnd, name,
                        self.get_3utr_length(), self.strand,
                        start, self.cdsEnd]
             else:
-                end = np.min([self.exonEnds[n - 1], self.cdsEnd])
+                end = min([self.exonEnds[n - 1], self.cdsEnd])
                 bed = [self.chrom, self.txStart, end, name,
                        self.get_3utr_length(), self.strand, self.cdsStart,
                        end]
