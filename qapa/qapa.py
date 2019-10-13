@@ -252,6 +252,7 @@ def build(args):
         result.to_csv(sys.stdout, sep="\t", index=False, header=False)
     except Exception as e:
         logger.exception("Error occurred in build:")
+        exit(1)
     finally:
         if not args.save:
             os.unlink(tf1.name)
