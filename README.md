@@ -119,7 +119,7 @@ To run `build`, gene and poly(A) annotation sources need to be prepared:
    it to genePred format using the UCSC tool
    [`gtfToGenePred`](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred):
 
-        gtfToGenePred -genePredExt custom_genes.gtf custom_genes.genedPred
+        gtfToGenePred -genePredExt custom_genes.gtf custom_genes.genePred
 
    Note that it is important to include the `-genePredExt` option!
 
