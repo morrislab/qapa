@@ -7,10 +7,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Row:
-    def __init__(self, row, no_header=False):
+    def __init__(self, row):
         l = row.rstrip().split("\t")
-        if no_header:
-            # add a dummy column in front of list to represent bin column in
+        if len(l) == 13:
+            # Assume the format is from gtfToGenePred.
+            # Add a dummy column in front of list to represent bin column in
             # UCSC genePred tables
             l.insert(0, "dummy")
         if len(l) < 13:
@@ -18,19 +19,25 @@ class Row:
                              " prediction file: %s. If gtfToGenePred was used,"
                              " please ensure that the -genePredExt option is"
                              " enabled!" % row)
-
-        self.name = l[1]
-        self.chrom = l[2]
-        self.strand = l[3]
-        self.txStart = int(l[4])
-        self.txEnd = int(l[5])
-        self.cdsStart = int(l[6])
-        self.cdsEnd = int(l[7])
-        self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",")
-                        if _f]]
-        self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",")
-                                if _f]]
-        self.name2 = l[12]
+        try:
+            self.name = l[1]
+            self.chrom = l[2]
+            self.strand = l[3]
+            self.txStart = int(l[4])
+            self.txEnd = int(l[5])
+            self.cdsStart = int(l[6])
+            self.cdsEnd = int(l[7])
+            self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",")
+                            if _f]]
+            self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",")
+                                    if _f]]
+            self.name2 = l[12]
+        except Exception as e:
+            logger.error("Unable to parse the input genePred file."
+                         " QAPA expects a genePred file from UCSC Table Browser"
+                         " or converted using gtfToGenePred with -genePredExt"
+                         " option enabled. \nExample row: %s" % row)
+            raise
 
         self.utr3 = [self.cdsEnd, self.txEnd]
         self.has_intron_in_3utr = self.cdsEnd < self.exonStarts[-1]
@@ -128,7 +135,6 @@ def main(args, fout=sys.stdout):
     w = 0
     c = 0
     n = 0
-    no_header = True
     bad_chroms = set()
     for row in fileinput.input(args.annotation_file[0],
                                openhook=fileinput.hook_compressed):
@@ -142,10 +148,9 @@ def main(args, fout=sys.stdout):
         if row.startswith("#"):
             if fileinput.isfirstline():
                 logger.debug("Header detected in genePred file.")
-                no_header = False
             continue
 
-        rowobj = Row(row, no_header)
+        rowobj = Row(row)
 
         if not args.no_skip_random_chromosomes and \
             rowobj.is_on_random_chromosome():
