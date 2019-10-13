@@ -1,0 +1,6 @@
+Gene stable ID	Transcript stable ID	Gene type	Transcript type	Gene name
+ENSMUSG00000031393	ENSMUST00000100750	protein_coding	protein_coding	Mecp2
+ENSMUSG00000031393	ENSMUST00000033770	protein_coding	protein_coding	Mecp2
+ENSMUSG00000031393	ENSMUST00000123362	protein_coding	protein_coding	Mecp2
+ENSMUSG00000031393	ENSMUST00000140399	protein_coding	protein_coding	Mecp2
+ENSMUSG00000031393	ENSMUST00000170481	protein_coding	protein_coding	Mecp2
