@@ -140,16 +140,16 @@ def main(args, fout=sys.stdout):
                                openhook=fileinput.hook_compressed):
         n = n + 1
 
-        try:
-            row = row.decode()
-        except AttributeError:
-            logger.exception("Error in decoding row.")
-            pass
+        if fileinput.isfirstline() and (row.startswith("#bin") or \
+                row.startswith("bin")):
+            logger.debug("Header detected in genePred file. Assuming UCSC"
+                         " format.")
+            continue
+        else:
+            logger.debug("No header detected. Assuming custom genePred.")
+
 
         if row.startswith("#"):
-            if fileinput.isfirstline():
-                logger.debug("Header detected in genePred file. Assuming UCSC"
-                             " format.")
             continue
 
         rowobj = Row(row)
