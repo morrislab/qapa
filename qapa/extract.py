@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 class Row:
     def __init__(self, row):
         l = row.rstrip().split("\t")
-        if len(l) == 13:
-            # Assume the format is from gtfToGenePred.
+        if len(l) == 15:
+            # Assume the format is generated from gtfToGenePred.
             # Add a dummy column in front of list to represent bin column in
             # UCSC genePred tables
-            l.insert(0, "dummy")
-        if len(l) < 13:
+            l.insert(0, None)
+        if len(l) <= 15:
             raise ValueError("Insufficient number of columns in gene"
                              " prediction file: %s. If gtfToGenePred was used,"
                              " please ensure that the -genePredExt option is"
@@ -143,11 +143,13 @@ def main(args, fout=sys.stdout):
         try:
             row = row.decode()
         except AttributeError:
+            logger.exception("Error in decoding row.")
             pass
 
         if row.startswith("#"):
             if fileinput.isfirstline():
-                logger.debug("Header detected in genePred file.")
+                logger.debug("Header detected in genePred file. Assuming UCSC"
+                             " format.")
             continue
 
         rowobj = Row(row)
