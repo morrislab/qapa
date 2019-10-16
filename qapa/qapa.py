@@ -39,7 +39,10 @@ Note: unless otherwise specified, all input files can be in compressed
     common.add_argument('-t', '--temp', type=str,
                         help="Set temp directory [{}]".
                         format(tempfile.gettempdir()))
-    common.add_argument('--debug', action="store_true",
+
+    # common args for build and fasta
+    common_build = argparse.ArgumentParser(add_help=False)
+    common_build.add_argument('--debug', action="store_true",
                         help="Increase verbosity of log messages for"
                         " troubleshooting.")
 
@@ -56,7 +59,7 @@ Output is in BED format plus additional gene symbol column
     build_parser = subparsers.add_parser('build', description=desc,
                                          formatter_class=argparse.RawDescriptionHelpFormatter,
                                          help="build 3' UTR reference library",
-                                         parents=[common])
+                                         parents=[common, common_build])
     optional = build_parser._action_groups.pop()
     build_parser.add_argument('annotation_file', nargs=1,
                               help="Input annotation table in genePred format."
@@ -126,7 +129,7 @@ Output is in BED format plus additional gene symbol column
     fasta_parser = subparsers.add_parser('fasta', description=desc,
                                          help="extract FASTA "
                                          "sequences from BED file",
-                                         parents=[common])
+                                         parents=[common, common_build])
     fasta_parser.add_argument('bed_file', nargs=1, help='Input BED filename')
     fasta_parser.add_argument('output_file', nargs=1, help='Output filename')
     optional = fasta_parser._action_groups.pop()
@@ -219,6 +222,9 @@ Output is in BED format plus additional gene symbol column
 
 def build(args):
     from . import extract, extend, annotate, collapse
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+
     tf1 = tempfile.NamedTemporaryFile(mode='w', prefix='qapa_extract_',
                                       delete=False)
     tf2 = tempfile.NamedTemporaryFile(mode='w', prefix='qapa_anno_',
@@ -262,6 +268,8 @@ def build(args):
 
 def fetch_sequences(args):
     from . import fasta
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
     fasta.main(args)
     logger.info("Sequences written to {}".format(args.output_file[0]))
 
@@ -295,8 +303,6 @@ def quant(args):
 def main():
     args = getoptions()
     logger.info("Version %s" % __version__)
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
 
     args.func(args)
     logger.info("Finished!")
