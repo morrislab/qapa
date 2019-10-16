@@ -70,11 +70,17 @@ QAPA has three sub-commands:
 
 ### Prepare annotation files
 
-Pre-defined libraries for human and mouse are available for download below.
+Pre-compiled libraries for human and mouse are available for download below.
 Otherwise, continue reading to build from scratch.
 
   - [Human (hg19)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.hg19.tar.gz)
   - [Mouse (mm10)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.mm10.tar.gz)
+
+_Updated in [v1.3.0](https://github.com/morrislab/qapa/releases/tag/v1.3.0),
+the following libraries are pre-compiled with Polyasite V2_:
+
+  - [Human (hg38)](https://github.com/morrislab/qapa/releases/download/v1.3.0/qapa_3utrs.gencode_V31.hg38.bed.gz)
+  - [Mouse (mm10)](https://github.com/morrislab/qapa/releases/download/v1.3.0/qapa_3utrs.gencode_VM22.mm10.bed.gz)
 
 To run `build`, gene and poly(A) annotation sources need to be prepared: 
 
@@ -123,9 +129,9 @@ To run `build`, gene and poly(A) annotation sources need to be prepared:
 
    Note that it is important to include the `-genePredExt` option!
 
-**B. Poly(A) site annotation**
+**B. Poly(A) site annotation (optional)**
 
-As of v1.2.0, this step is optional. Otherwise, two options are available:
+This step can be skipped, otherwise continue reading. Two options are available:
 
 **Option 1**: standard approach using PolyASite and GENCODE poly(A) track (as described in the [paper](#citation))
 
