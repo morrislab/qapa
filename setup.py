@@ -21,7 +21,7 @@ setup(name='qapa',
       scripts=['scripts/create_merged_data.R',
                'scripts/compute_pau.R'],
       install_requires=['setuptools',
-                        'pandas >= 0.17',
+                        'pandas >= 0.24',
                         'numpy >= 1.10.0',
                         'biopython >= 1.66',
                         'pybedtools >= 0.7.9'
