@@ -163,20 +163,20 @@ describes several example use cases:
 
 1. To extract 3′ UTRs from annotation, run:
 
-    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
+       qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
 
 2. If using a custom BED file, replace the `-g` and `-p` options with `-o`:
 
-    qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
+       qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
 
 3. If using a custom genePred file converted from GTF, supply the file as in 1.
    (e.g. the first positional argument):
 
-    qapa build --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
+       qapa build --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
  
 4. If bypassing the poly(A) annotation step, include the `-N` option:
 
-    qapa build -N --db ensembl_identifiers.txt gencode.basic.txt > output.utrs.bed
+       qapa build -N --db ensembl_identifiers.txt gencode.basic.txt > output.utrs.bed
 
 Results will be saved in the file `output_utrs.bed` (default is STDOUT).
 It is important that the sequence IDs are not modified as it will be parsed by
