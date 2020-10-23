@@ -59,14 +59,14 @@ class QapaTestCase(unittest.TestCase):
 
     @patch('os.system')
     def test_quant(self, mock_sys):
-        # should call create_merged_data.R and compute_pau.R 
+        # should call create_merged_data.R and compute_pau.R
         db = NamedTemporaryFile()
         args = qapa.getoptions(['quant', '--db', db.name, 'test_1.sf',
                                 'test_2.sf'])
         qapa.quant(args)
-        self.assertRegexpMatches(mock_sys.call_args_list[0][0][0],
+        self.assertRegex(mock_sys.call_args_list[0][0][0],
             r'create_merged_data.R')
-        self.assertRegexpMatches(mock_sys.call_args_list[1][0][0],
+        self.assertRegex(mock_sys.call_args_list[1][0][0],
             r'compute_pau.R')
 
 

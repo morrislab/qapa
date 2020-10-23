@@ -117,7 +117,7 @@ class Row:
 def get_stripped_name(name):
     # If Gencode tables are supplied, the Ensembl transcript ID has a
     # version number appended to the ID. We want to strip this out.
-    match = re.match('ENS\w*T\d+', name)
+    match = re.match(r'ENS\w*T\d+', name)
     if match:
         return match.group()
     return name
