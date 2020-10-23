@@ -23,7 +23,7 @@ setup(name='qapa',
       install_requires=['setuptools',
                         'pandas >= 0.24',
                         'numpy >= 1.10.0',
-                        'biopython >= 1.66',
+                        'biopython >= 1.76',
                         'pybedtools >= 0.7.9'
                         ],
       entry_points={

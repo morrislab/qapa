@@ -1,4 +1,3 @@
-import fileinput
 import sys
 from Bio import SeqIO
 import pybedtools
@@ -18,7 +17,7 @@ def filter_sequences(fasta_file, min_length=100, fout=sys.stdout):
     seqs = set()
     ids = set()
     skipped = 0
-    handle = fileinput.input(fasta_file)
+    handle = open(fasta_file, 'r')
 
     for record in SeqIO.parse(handle, "fasta"):
         sequence = str(record.seq)
