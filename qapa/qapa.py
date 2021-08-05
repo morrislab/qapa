@@ -51,7 +51,7 @@ Note: unless otherwise specified, all input files can be in compressed
 Extract 3' UTRs from GENCODE annotation table in genePred format,
 followed by annotation with GENCODE poly(A) track and PolyAsite.
 Alternatively, the second step can be carried out using a custom BED
-file using option -o. 
+file using option -o.
 
 Output is in BED format plus additional gene symbol column
 (to STDOUT).
@@ -90,9 +90,6 @@ Output is in BED format plus additional gene symbol column
     optional.add_argument("-d", type=int, default=24,
                           dest="dist3", metavar="DISTANCE",
                           help="Maximum distance between 3' ends to merge [%(default)s]")
-    optional.add_argument("-f", type=int, default=None,
-                          dest="dist5", metavar="DISTANCE",
-                          help="(Deprecated) Maximum distance between 5' ends to merge [%(default)s]")
     optional.add_argument("-o", "--other", default=None,
                           help="Use this option to annotate 3' UTRs with a "
                           "custom BED file of poly(A) sites. This option "
@@ -114,11 +111,6 @@ Output is in BED format plus additional gene symbol column
     optional.add_argument("-c", "--cores", type=int,
                           help="The number of cores for multiprocessing. "
                           "Defaults to all available cores.")
-    optional.add_argument("-H", "--no_header", action='store_true',
-                          help="(Deprecated) Annotation table (genePred) has no header. "
-                          "Use this option if your input table was created "
-                          "using gtfToGenePred -genePredExt. This option is "
-                          "no longer required as of v1.3.")
     build_parser.set_defaults(func=build)
     build_parser._action_groups.append(optional)
 
@@ -191,15 +183,6 @@ Output is in BED format plus additional gene symbol column
         if not (args.species is None or \
                 re.match(r'^[a-zA-Z0-9]+$', args.species)):
             parser.error("Species must be alphanumeric.")
-
-        if args.dist5 is not None:
-            logger.warning("DEPRECATION NOTICE: As of v1.3.0, the --dist5 option"
-                           " is no longer used.")
-
-        if args.no_header:
-            logger.warning("DEPRECATION NOTICE: As of v1.3.0, it is no longer "
-                           "required to specify -H/--no-header when "
-                           "supplying a custom genePred file.")
 
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
