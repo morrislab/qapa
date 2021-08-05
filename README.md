@@ -13,61 +13,25 @@ other tools such as [Sailfish](https://github.com/kingsfordgroup/sailfish) and
 
 ---
 
-# Installation
+## Installation
 
-QAPA consists of both Python (3.5+) and R scripts.
+QAPA consists of both Python (3.5+) and R scripts.  A conda virtual environment
+can be created using the provided `environment.yml` file.
 
-1. Install the following software pre-requisites:
-    1. [bedtools](https://github.com/arq5x/bedtools2). *Note: do not use 2.26.0
-       stable release as there is a
-       [bug](https://github.com/arq5x/bedtools2/issues/435) with the groupBy tool*.
-    2. [python](https://www.python.org)
-    3. [R](https://www.r-project.org/)
-
-3. Clone the latest development version of QAPA and change directory:
-
-        git clone https://github.com/morrislab/qapa.git
-        cd qapa
-
-    Alternatively, download the latest
-    [release](https://github.com/morrislab/qapa/releases/latest) and unpack the
-    tarball:
-
-        tar -xzvf qapa-1.2.0.tar.gz
-        cd qapa-1.2.0
-
-4. Install the R packages optparse, dplyr, data.table, and stringr. From the command line:
-
-        R -e 'install.packages(c("optparse", "dplyr", "data.table", "stringr"))'
-
-    Alternatively, execute the provided `install_packages.R` helper script from
-    command line:
-
-        Rscript scripts/install_packages.R
-
-5. Execute the `setup.py` install script:
-
-        python setup.py install
-
-6. To test if installation is working:
-
-        cd          # change to root directory
-        which qapa  # should return path of qapa executable
-        qapa -h     # should display help message
-
-## Conda virtual environment
-
-A conda virtual environment for QAPA can be created using the
-provided `environment.yml` file:
+1. Clone the repo:
 
     git clone https://github.com/morrislab/qapa.git
     cd qapa
-    conda env create -f environment.yml
 
-To complete the installation, activate the environment and execute `setup.py`:
+2. (Optional) Install `mamba` for faster Conda management
 
-    source activate qapa
-    python setup.py install
+    conda install -c conda-forge mamba
+
+3.  Create the environment
+
+    mamba env create -f environment.yml
+
+---
 
 # Usage
 
@@ -80,21 +44,25 @@ QAPA has three sub-commands:
   3. [`quant`](#quantify-3-utr-isoform-usage-quant): Calculate relative
      usage of alternative 3′ UTR isoforms
 
-## Build 3′ UTRs from annotation (`build`)
+## 1) Build 3′ UTRs from annotation (`build`)
 
-### Prepare annotation files
+### Download pre-compiled libraries
 
 Pre-compiled libraries for human and mouse are available for download below.
 Otherwise, continue reading to build from scratch.
-
-  - [Human (hg19)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.hg19.tar.gz)
-  - [Mouse (mm10)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.mm10.tar.gz)
 
 _Updated in [v1.3.0](https://github.com/morrislab/qapa/releases/tag/v1.3.0),
 the following libraries are pre-compiled with Polyasite V2_:
 
   - [Human (hg38)](https://github.com/morrislab/qapa/releases/download/v1.3.0/qapa_3utrs.gencode_V31.hg38.bed.gz)
   - [Mouse (mm10)](https://github.com/morrislab/qapa/releases/download/v1.3.0/qapa_3utrs.gencode_VM22.mm10.bed.gz)
+
+(Old) Versions v1.2.3 and earlier:
+
+  - [Human (hg19)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.hg19.tar.gz)
+  - [Mouse (mm10)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.mm10.tar.gz)
+
+### Prepare annotation files
 
 To run `build`, gene and poly(A) annotation sources need to be prepared:
 
@@ -197,11 +165,12 @@ It is important that the sequence IDs are not modified as it will be parsed by
 `quant` below.
 
 Additional notes:
+
   - 3' UTRs that contain introns will be skipped.
   - Chromosome names that contain underscores are currently not supported and will be
     skipped.
 
-## Extract 3′ UTR sequences (`fasta`)
+## 2) Extract 3′ UTR sequences (`fasta`)
 
 To extract sequences from the BED file prepared by `build`, a reference genome in
 FASTA format is required. e.g. http://hgdownload.soe.ucsc.edu/downloads.html.
@@ -214,7 +183,7 @@ Essentially `fasta` is a wrapper that calls `bedtools getfasta`. Note that
 `genome.fa` must be uncompressed. Sequences will be saved in
 `output_sequences.fa`.
 
-## Quantify 3′ UTR isoform usage (`quant`)
+## 3) Quantify 3′ UTR isoform usage (`quant`)
 
 Expression quantification of 3′ UTR isoforms must be carried out first using the
 FASTA file prepared by `fasta` as the index. For example, to index the sequences

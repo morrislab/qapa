@@ -2,15 +2,19 @@ name: qapa
 channels:
   - conda-forge
   - bioconda
+  - defaults
 dependencies:
-  - python=3
+  - python>=3.5
   - pandas>=0.17
   - numpy>=1.10
   - bedtools=2.27.1
+  - pip>=21
   - pybedtools>=0.7
   - biopython>=1.66
-  - r>=3.4
+  - r-base>=3.4
   - r-dplyr>=0.7
   - r-optparse
   - r-data.table
   - r-stringr
+  - pip:
+    - -e .
