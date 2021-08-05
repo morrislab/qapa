@@ -3,19 +3,15 @@
 # BED file must be sorted by 3' coordinate, strand, followed by start
 # coordinate.
 
-from __future__ import print_function
 import sys
-import re
 import pandas as pd
 import numpy as np
-import warnings
-from . import utils
+import logging
 
-_TAG = 'collapse' 
+logger = logging.getLogger(__name__)
 
 class Interval:
     def __init__(self, l, sp=None):
-        #l = line.rstrip().split("\t")
         self.chrom = l[0]
         self.start = int(l[1])
         self.end = int(l[2])
@@ -26,7 +22,6 @@ class Interval:
         self.start2 = int(l[6])
         self.end2 = int(l[7])
         self.gene_id = l[8]
-        #self.utr_id = l[9]
         self.species = self._guess_species(sp)
 
     def is_forward(self):
@@ -37,7 +32,7 @@ class Interval:
         '''
         self.start = min(self.start, b.start)
         self.end = max(self.end, b.end)
-        if not re.search(b.name, self.name):
+        if b.name not in self.name:
             self.name = self.name + "," + b.name
         self.start2 = min(self.start2, b.start2)
         self.end2 = max(self.end2, b.end2)
@@ -63,18 +58,16 @@ class Interval:
                 self.strand, self.gene_id]
 
     def _guess_species(self, species=None):
-        if re.match(r'ENST\d+', self.name):
-            return 'hg19'
-        elif re.match(r'ENSMUST\d+', self.name):
-            return 'mm10'
+        if self.name.startswith('ENST0'):
+            return 'hsa'
+        elif self.name.startswith('ENSMUST0'):
+            return 'mmu'
         elif species is not None:
             return species
-        warnings.warn('Could not guess species from gene name!' +
-            ' To disable this warning, use --species option', Warning)
         return 'unk'
 
 
-def overlaps(a, b, dist5, dist3):
+def overlaps(a, b, dist3):
     '''Determine if two intervals have close 3' ends'''
 
     if a.chrom == b.chrom and a.strand == b.strand:
@@ -90,25 +83,10 @@ def same_gene(a, b):
     return a.gene_id == b.gene_id
 
 
-# def getoptions():
-#     usage = "usage: python %prog [options] sorted_grouped_reads.bed annotation.db"
-#     desc = "Process sorted BED file and collapse consecutive intervals that" + \
-#     " have similar 3' ends."
-#     parser = OptionParser(usage=usage, description=desc)
-#     parser.add_option("-d", type = "int", default = 24,
-#             dest = "dist3", metavar = "DISTANCE",
-#             help = "Maximum distance between 3' ends to merge [%default]")
-#     parser.add_option("-f", type = "int", default = 3,
-#             dest = "dist5", metavar = "DISTANCE",
-#             help = "Maximum distance between 5' ends to merge [%default]")
-#     (opts, args) = parser.parse_args()
-#     if len(args) < 1:
-#         parser.error("Missing arguments")
-#     return (opts, args)
-
-
 def merge_bed(args, inputfile):
     '''Go through a sorted BED file and merge intervals together'''
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     if inputfile == '-':
         df = pd.read_table(sys.stdin)
@@ -119,7 +97,7 @@ def merge_bed(args, inputfile):
     df = df[df.utr_length > 0]
 
     # Sort by three prime coordinate
-    utils.eprint("Sorting data frame by 3' end", tag=_TAG)
+    logger.info("Sorting data frame by 3' end")
     df['three_prime'] = np.where(df['strand'] == '+', df['end'], df['start'])
     df = df.sort_values(['strand', 'seqnames', 'three_prime'])
 
@@ -127,20 +105,19 @@ def merge_bed(args, inputfile):
     collapsed_three_prime = []
     overlap_diff_genes = set()
 
-    utils.eprint("Iterating and merging intervals by 3' end", tag=_TAG)
+    logger.info("Iterating and merging intervals by 3' end")
     for index, line in df.iterrows():
         my_interval = Interval(line, args.species)
 
         if prev_interval is None:
             prev_interval = my_interval
-        elif overlaps(prev_interval, my_interval, args.dist5, args.dist3):
+        elif overlaps(prev_interval, my_interval, args.dist3):
             if same_gene(prev_interval, my_interval):
                 prev_interval.merge(my_interval)
             else:
-                # print("Skipping overlapping but different "
-                #       "genes %s and %s" %
-                #       (prev_interval.gene_id, my_interval.gene_id),
-                #       file=sys.stderr)
+                logger.debug("Skipping overlapping but different "
+                      "genes %s and %s" %
+                      (prev_interval.gene_id, my_interval.gene_id))
                 overlap_diff_genes.add(prev_interval.gene_id)
                 overlap_diff_genes.add(my_interval.gene_id)
                 prev_interval = None
@@ -160,7 +137,7 @@ def merge_bed(args, inputfile):
     three_prime_df = \
         three_prime_df[~three_prime_df['gene_id'].isin(overlap_diff_genes)]
 
-    utils.eprint("Updating 5' end for each gene", tag=_TAG)
+    logger.info("Updating 5' end for each gene")
 
     # Filter by forward and reverse strand
     forward = three_prime_df[three_prime_df.strand == '+']
@@ -180,6 +157,3 @@ def merge_bed(args, inputfile):
     # Join back together
     return pd.concat([forward, reverse])
 
-
-if __name__ == '__main__':
-    pass

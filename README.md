@@ -15,17 +15,13 @@ other tools such as [Sailfish](https://github.com/kingsfordgroup/sailfish) and
 
 # Installation
 
-QAPA consists of both Python (2.7+ or 3.5+) and R scripts. To install QAPA in a
-conda virtual environment, skip to the **[Conda virtual
-environment](#conda-virtual-environment)** section below.
-
-## Manual installation 
+QAPA consists of both Python (3.5+) and R scripts.
 
 1. Install the following software pre-requisites:
     1. [bedtools](https://github.com/arq5x/bedtools2). *Note: do not use 2.26.0
        stable release as there is a
        [bug](https://github.com/arq5x/bedtools2/issues/435) with the groupBy tool*.
-    2. [python](https://www.python.org) 
+    2. [python](https://www.python.org)
     3. [R](https://www.r-project.org/)
 
 3. Clone the latest development version of QAPA and change directory:
@@ -50,7 +46,7 @@ environment](#conda-virtual-environment)** section below.
         Rscript scripts/install_packages.R
 
 5. Execute the `setup.py` install script:
-        
+
         python setup.py install
 
 6. To test if installation is working:
@@ -75,30 +71,37 @@ To complete the installation, activate the environment and execute `setup.py`:
 
 # Usage
 
-QAPA has three sub-commands: 
+QAPA has three sub-commands:
 
   1. [`build`](#build-3-utrs-from-annotation-build): Generate a 3′ UTR
      library from annotations
   2. [`fasta`](#extract-3-utr-sequences-fasta): Extract sequences for
      indexing by transcript quantification tools
-  3. [`quant`](#quantify-3-utr-isoform-usage-quant): Calculate relative 
+  3. [`quant`](#quantify-3-utr-isoform-usage-quant): Calculate relative
      usage of alternative 3′ UTR isoforms
 
 ## Build 3′ UTRs from annotation (`build`)
 
 ### Prepare annotation files
 
-Pre-defined libraries for human and mouse are available for download below.
+Pre-compiled libraries for human and mouse are available for download below.
 Otherwise, continue reading to build from scratch.
 
   - [Human (hg19)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.hg19.tar.gz)
   - [Mouse (mm10)](https://zenodo.org/record/1222196/files/qapa_3utrs.gencode.mm10.tar.gz)
 
-To run `build`, gene and poly(A) annotation sources need to be prepared: 
+_Updated in [v1.3.0](https://github.com/morrislab/qapa/releases/tag/v1.3.0),
+the following libraries are pre-compiled with Polyasite V2_:
+
+  - [Human (hg38)](https://github.com/morrislab/qapa/releases/download/v1.3.0/qapa_3utrs.gencode_V31.hg38.bed.gz)
+  - [Mouse (mm10)](https://github.com/morrislab/qapa/releases/download/v1.3.0/qapa_3utrs.gencode_VM22.mm10.bed.gz)
+
+To run `build`, gene and poly(A) annotation sources need to be prepared:
 
 **A. Gene annotation**
 
-1. Ensembl gene metadata table from [Biomart](http://www.ensembl.org/biomart).
+1. Ensembl gene metadata table from
+   [Biomart](http://www.ensembl.org/biomart/martview).
 
    Human and mouse tables are provided in the `examples` folder.  To obtain a fresh
    copy, download a table of Ensembl Genes from Biomart with the following
@@ -136,13 +139,15 @@ To run `build`, gene and poly(A) annotation sources need to be prepared:
    it to genePred format using the UCSC tool
    [`gtfToGenePred`](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred):
 
-        gtfToGenePred -genePredExt custom_genes.gtf custom_genes.genedPred
+        gtfToGenePred -genePredExt custom_genes.gtf custom_genes.genePred
 
-**B. Poly(A) site annotation**
+   Note that it is important to include the `-genePredExt` option!
 
-As of v1.2.0, this step is optional. Otherwise, two options are available:
+**B. Poly(A) site annotation (optional)**
 
-Option 1: standard approach using PolyASite and GENCODE poly(A) track (as described in the [paper](#citation))
+This step can be skipped, otherwise continue reading. Two options are available:
+
+**Option 1**: standard approach using PolyASite and GENCODE poly(A) track (as described in the [paper](#citation))
 
 1. PolyASite database
 
@@ -158,42 +163,48 @@ Option 1: standard approach using PolyASite and GENCODE poly(A) track (as descri
             from wgEncodeGencodePolyaVM9 where name2 = 'polyA_site'" -N mm10 \
             > gencode.polyA_sites.bed
 
-Option 2: use custom BED track of poly(A) sites
+**Option 2**: use custom BED track of poly(A) sites
 
 A custom BED file of poly(A) sites can be used to annotate 3′ UTRs.
 Each entry must contain the start (0-based) and end coordinate of a poly(A)
 site.
 
-### Build library
+### Commands
 
 Once the data files have been prepared, we can then use `build` to create the 3'
-UTR library. The following describes several example use cases:
+UTR library. See `qapa build -h` for usage details. The following
+describes several example use cases:
 
-To extract 3′ UTRs from annotation, run:
+1. To extract 3′ UTRs from annotation, run:
 
-    qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
+       qapa build --db ensembl_identifiers.txt -g gencode.polyA_sites.bed -p clusters.mm10.bed gencode.basic.txt > output_utrs.bed
 
-If using a custom BED file, replace the `-g` and `-p` options with `-o`:
+2. If using a custom BED file, replace the `-g` and `-p` options with `-o`:
 
-    qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
+       qapa build --db ensembl_identifiers.txt -o custom_sites.bed gencode.basic.txt > output_utrs.bed
 
-If using a custom genePred file converted from GTF, include the `-H`
-option:
+3. If using a custom genePred file converted from GTF, supply the file as in 1.
+   (e.g. the first positional argument):
 
-    qapa build -H --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
- 
-If bypassing the poly(A) annotation step, include the `-N` option:
+       qapa build --db ensembl_identifiers.txt -o custom_sites.bed custom_genes.genePred > output_utrs.bed
 
-    qapa build -N --db ensembl_identifiers.txt gencode.basic.txt > output.utrs.bed
+4. If bypassing the poly(A) annotation step, include the `-N` option:
+
+       qapa build -N --db ensembl_identifiers.txt gencode.basic.txt > output.utrs.bed
 
 Results will be saved in the file `output_utrs.bed` (default is STDOUT).
 It is important that the sequence IDs are not modified as it will be parsed by
-`quant` below. 
+`quant` below.
+
+Additional notes:
+  - 3' UTRs that contain introns will be skipped.
+  - Chromosome names that contain underscores are currently not supported and will be
+    skipped.
 
 ## Extract 3′ UTR sequences (`fasta`)
 
 To extract sequences from the BED file prepared by `build`, a reference genome in
-FASTA format is required. e.g. http://hgdownload.soe.ucsc.edu/downloads.html. 
+FASTA format is required. e.g. http://hgdownload.soe.ucsc.edu/downloads.html.
 
 Then, run the command:
 
@@ -201,16 +212,16 @@ Then, run the command:
 
 Essentially `fasta` is a wrapper that calls `bedtools getfasta`. Note that
 `genome.fa` must be uncompressed. Sequences will be saved in
-`output_sequences.fa`. 
+`output_sequences.fa`.
 
 ## Quantify 3′ UTR isoform usage (`quant`)
 
 Expression quantification of 3′ UTR isoforms must be carried out first using the
 FASTA file prepared by `fasta` as the index. For example, to index the sequences
 using Salmon:
-    
+
     salmon index -t output_sequences.fa -i utr_library
-     
+
 Following expression quantification, QAPA expects the results to be located inside its
 own sub-directory. For example, typical Sailfish/Salmon results may appear with
 the following directory structure:

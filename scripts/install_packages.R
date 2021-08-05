@@ -13,12 +13,13 @@ for (p in pkgs) {
 }
 
 writeLines("\n-------------------------------------")
-writeLines("INSTALL SUMMARY")
+writeLines("INSTALL SUMMARY OF REQUIRED R PACKAGES")
 writeLines("-------------------------------------")
-check <- vector(length = length(pkgs))
+check <- vector()
 for (p in pkgs) {
-  check[p] <- p %in% installed.packages(lib.loc = local.lib)
-  writeLines(sprintf("%s: %s", p, ifelse(check[p] == TRUE, "OK", "FAIL")))  
+  status <- p %in% installed.packages(lib.loc = local.lib)
+  check <- append(check, status)
+  writeLines(sprintf("%s: %s", p, ifelse(status == TRUE, "OK", "FAIL")))
 }
 writeLines("-------------------------------------\n")
 status <- !(all(check))

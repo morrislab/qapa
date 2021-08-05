@@ -1,38 +1,43 @@
-from __future__ import print_function
 import re
 import sys
-import warnings
 import fileinput
-import numpy as np
 import pandas as pd
-# import sqlite3
-from . import utils
+import logging
 
-_TAG = 'extract'
+logger = logging.getLogger(__name__)
 
 class Row:
-    def __init__(self, row, no_header=False):
+    def __init__(self, row):
         l = row.rstrip().split("\t")
-        if no_header:
-            # add a dummy column in front of list to represent bin column in
+        if len(l) == 15:
+            # Assume the format is generated from gtfToGenePred.
+            # Add a dummy column in front of list to represent bin column in
             # UCSC genePred tables
-            l.insert(0, "dummy")
-        if len(l) < 13:
+            l.insert(0, None)
+        if len(l) <= 15:
             raise ValueError("Insufficient number of columns in gene"
-                             " prediction file.")
-
-        self.name = l[1]
-        self.chrom = l[2]
-        self.strand = l[3]
-        self.txStart = int(l[4])
-        self.txEnd = int(l[5])
-        self.cdsStart = int(l[6])
-        self.cdsEnd = int(l[7])
-        self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",")
-                        if _f]]
-        self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",")
-                                if _f]]
-        self.name2 = l[12]
+                             " prediction file: %s. If gtfToGenePred was used,"
+                             " please ensure that the -genePredExt option is"
+                             " enabled!" % row)
+        try:
+            self.name = l[1]
+            self.chrom = l[2]
+            self.strand = l[3]
+            self.txStart = int(l[4])
+            self.txEnd = int(l[5])
+            self.cdsStart = int(l[6])
+            self.cdsEnd = int(l[7])
+            self.exonStarts = [int(x) for x in [_f for _f in l[9].split(",")
+                            if _f]]
+            self.exonEnds = [int(x) for x in [_f for _f in l[10].split(",")
+                                    if _f]]
+            self.name2 = l[12]
+        except Exception as e:
+            logger.error("Unable to parse the input genePred file."
+                         " QAPA expects a genePred file from UCSC Table Browser"
+                         " or converted using gtfToGenePred with -genePredExt"
+                         " option enabled. \nExample row: %s" % row)
+            raise
 
         self.utr3 = [self.cdsEnd, self.txEnd]
         self.has_intron_in_3utr = self.cdsEnd < self.exonStarts[-1]
@@ -48,22 +53,21 @@ class Row:
         if not self.has_intron_in_3utr and \
                 self.get_3utr_length() >= min_utr_length:
             if self.strand == "+":
-                start = np.max([self.exonStarts[-n], self.cdsStart])
+                start = max([self.exonStarts[-n], self.cdsStart])
                 bed = [self.chrom, start, self.txEnd, name,
                        self.get_3utr_length(), self.strand,
                        start, self.cdsEnd]
             else:
-                end = np.min([self.exonEnds[n - 1], self.cdsEnd])
+                end = min([self.exonEnds[n - 1], self.cdsEnd])
                 bed = [self.chrom, self.txStart, end, name,
                        self.get_3utr_length(), self.strand, self.cdsStart,
                        end]
             bed.append(self.name2)
             bed.append(','.join([str(x) for x in self.exonStarts]))
             bed.append(','.join([str(x) for x in self.exonEnds]))
-        else:
-            pass
-            # print >> sys.stderr, "Skipping " + self.name + " because it" + \
-            #" contains an intron in 3' UTR"
+        #else:
+            #logger.debug("Skipping %s because it contains an intron in 3' UTR" %
+                    #self.name)
         return bed
 
     def extract_3utr(self, min_utr_length=0):
@@ -109,24 +113,18 @@ class Row:
     def _join_names(self):
         return get_stripped_name(self.name) + "_" + get_stripped_name(self.name2)
 
+
 def get_stripped_name(name):
     # If Gencode tables are supplied, the Ensembl transcript ID has a
     # version number appended to the ID. We want to strip this out.
-    if re.match('^ENS\w*T', name):
-        m = re.match('^ENS\w*T\d+', name)
-        return m.group()
+    match = re.match(r'ENS\w*T\d+', name)
+    if match:
+        return match.group()
     return name
 
-
 def main(args, fout=sys.stdout):
-
-    # print "\t".join(["seqnames", "start", "end", "name", "utr_length", "strand",
-                     #"lastexon_cds_start", "lastexon_cds_end", "name2",
-                     #"exonStarts", "exonEnds"])
-
-    # conn = sqlite3.connect(args.db)
-
-    # query = "select gene_biotype, transcript_biotype from ensembl_id where transcript_id = ?"
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     conn = pd.read_table(args.db)
     conn = conn.loc[:, ['Transcript stable ID', 'Gene type',
@@ -137,23 +135,24 @@ def main(args, fout=sys.stdout):
     w = 0
     c = 0
     n = 0
+    bad_chroms = set()
     for row in fileinput.input(args.annotation_file[0],
                                openhook=fileinput.hook_compressed):
-        
-        if fileinput.isfirstline() and not args.no_header:
-            continue
         n = n + 1
 
-        try:
-            row = row.decode()
-        except AttributeError:
-            pass
+        if fileinput.isfirstline() and (row.startswith("#bin") or \
+                row.startswith("bin")):
+            logger.debug("Header detected in genePred file. Assuming UCSC"
+                         " format.")
+            continue
+        else:
+            logger.debug("No header detected. Assuming custom genePred.")
 
-        if re.match(r"^#", row):
-            #   c = c + 1
+
+        if row.startswith("#"):
             continue
 
-        rowobj = Row(row, args.no_header)
+        rowobj = Row(row)
 
         if not args.no_skip_random_chromosomes and \
             rowobj.is_on_random_chromosome():
@@ -162,22 +161,12 @@ def main(args, fout=sys.stdout):
 
         if rowobj.chromosome_contains_underscore():
             w = w + 1
-            if w == max_warnings:
-                warnings.warn("Suppressing chromosome warnings...", Warning)
-            elif w < max_warnings:
-                warnings.warn("Skipping %s as chromosome %s contains "
-                              "underscores." % (rowobj.name, rowobj.chrom),
-                              Warning)
-            continue
 
-        # filter for only protein-coding genes
-        # result = conn.execute(query, (rowobj.get_stripped_name(),))
-        # result = result.fetchone()
-        # if result is None or \
-        #     not (result[0] == "protein_coding" and \
-        #     result[1] == "protein_coding"):
-        #         c = c + 1
-        #         continue
+            if rowobj.chrom not in bad_chroms:
+                logger.warning("Skipping chromosome %s because it contains"
+                               " underscores" % rowobj.chrom)
+                bad_chroms.add(rowobj.chrom)
+            continue
 
         # filter for only protein-coding genes
         try:
@@ -200,11 +189,7 @@ def main(args, fout=sys.stdout):
             c = c + 1
 
     fileinput.close()
-    # conn.close()
     if float(c) / float(n) > 0.75:
-        warnings.warn("%d/%d (%0.2f%%) were skipped. Are you using the "
-              "correct database?" % (c, n, float(c)/float(n)), Warning)
+        logger.warning("%d/%d (%0.2f%%) were skipped. Are you using the "
+              "correct database?" % (c, n, float(c)/float(n)))
 
-
-if __name__ == '__main__':
-    pass
