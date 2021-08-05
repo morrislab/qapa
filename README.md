@@ -30,6 +30,7 @@ can be created using the provided `environment.yml` file.
 3.  Create the environment
 
         mamba env create -f environment.yml
+        conda activate qapa
 
 ---
 
