@@ -70,10 +70,13 @@ Output is in BED format plus additional gene symbol column
     required = build_parser.add_argument_group('required named arguments')
     required.add_argument("--db", type=str, required=True,
                           help="Ensembl gene identifier table")
-    required.add_argument('-g', '--gencode_polya', dest="gencode_polya",
-                          help="GENCODE poly(A) site track")
-    required.add_argument('-p', '--polyasite', dest="polyasite",
-                          help="PolyAsite database")
+    required_polya = build_parser.add_argument_group(
+        'required named arguments when using public poly(A) site annotations'
+    )
+    required_polya.add_argument('-g', '--gencode_polya', dest="gencode_polya",
+                                help="GENCODE poly(A) site track")
+    required_polya.add_argument('-p', '--polyasite', dest="polyasite",
+                                help="PolyAsite database")
     optional.add_argument('-m', '--min_polyasite', dest="min_polyasite",
                           type=int, default=3,
                           help="Minimum score in PolyAsite [%(default)s]")
@@ -168,13 +171,11 @@ Output is in BED format plus additional gene symbol column
     args = parser.parse_args(args=args)
 
     if args.subcommand == 'build':
-        _check_input_files([args.polyasite, args.gencode_polya, args.db,
-                            args.other, args.annotation_file[0]], build_parser)
-
         if args.other is None and \
             (args.gencode_polya is None or args.polyasite is None) and \
             not args.no_annotation:
-                parser.error("Missing arguments: -g and/or -p")
+                parser.error("Missing arguments: -g and -p flags are mutually "
+                             "inclusive")
 
         if args.other and (args.gencode_polya or args.polyasite):
             logger.info("Option -o (custom BED) will be used for build phase and "
@@ -183,6 +184,9 @@ Output is in BED format plus additional gene symbol column
         if not (args.species is None or \
                 re.match(r'^[a-zA-Z0-9]+$', args.species)):
             parser.error("Species must be alphanumeric.")
+
+        _check_input_files([args.polyasite, args.gencode_polya, args.db,
+                            args.other, args.annotation_file[0]], build_parser)
 
     elif args.subcommand == 'fasta':
         _check_input_files([args.bed_file[0], args.genome], fasta_parser)
