@@ -20,16 +20,16 @@ can be created using the provided `environment.yml` file.
 
 1. Clone the repo:
 
-    git clone https://github.com/morrislab/qapa.git
-    cd qapa
+        git clone https://github.com/morrislab/qapa.git
+        cd qapa
 
 2. (Optional) Install `mamba` for faster Conda management
 
-    conda install -c conda-forge mamba
+        conda install -c conda-forge mamba
 
 3.  Create the environment
 
-    mamba env create -f environment.yml
+        mamba env create -f environment.yml
 
 ---
 
