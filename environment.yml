@@ -16,5 +16,7 @@ dependencies:
   - r-optparse
   - r-data.table
   - r-stringr
+  - r-testthat
+  - ucsc-gtftogenepred
   - pip:
-    - -e .
+    - .
