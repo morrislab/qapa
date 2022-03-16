@@ -33,11 +33,10 @@ class Row:
                                     if _f]]
             self.name2 = l[12]
         except Exception as e:
-            logger.error("Unable to parse the input genePred file."
+            raise ValueError("Unable to parse the input genePred file."
                          " QAPA expects a genePred file from UCSC Table Browser"
                          " or converted using gtfToGenePred with -genePredExt"
                          " option enabled. \nExample row: %s" % row)
-            raise
 
         self.utr3 = [self.cdsEnd, self.txEnd]
         self.has_intron_in_3utr = self.cdsEnd < self.exonStarts[-1]
@@ -140,22 +139,24 @@ def main(args, fout=sys.stdout):
                                openhook=fileinput.hook_compressed):
         n = n + 1
 
-        if fileinput.isfirstline() and (row.startswith("#bin") or \
-                row.startswith("bin")):
-            logger.debug("Header detected in genePred file. Assuming UCSC"
-                         " format.")
-            continue
-        else:
-            logger.debug("No header detected. Assuming custom genePred.")
+        if fileinput.isfirstline():
+            if row.startswith("#bin") or row.startswith("bin"):
+                logger.debug("Header detected in genePred file. Assuming UCSC"
+                             " format.")
+                continue
+            else:
+                logger.debug("No header detected. Assuming custom genePred.")
 
 
         if row.startswith("#"):
+            logger.debug("Skipping line %s", row)
             continue
 
         rowobj = Row(row)
 
         if not args.no_skip_random_chromosomes and \
             rowobj.is_on_random_chromosome():
+            logger.debug("Skipping line %s (random chromosome)", row)
             c = c + 1
             continue
 
@@ -178,6 +179,7 @@ def main(args, fout=sys.stdout):
                 c = c + 1
                 continue
         except KeyError:
+            logger.debug("Skipping %s (not a protein coding gene)", rowobj.name)
             c = c + 1
             continue
 
@@ -186,10 +188,16 @@ def main(args, fout=sys.stdout):
         if bed is not None:
             fout.write("\t".join([str(x) for x in bed]) + "\n")
         else:
+            logger.debug("Skipping %s (could not extract last exon",
+                    rowobj.name)
             c = c + 1
 
     fileinput.close()
-    if float(c) / float(n) > 0.75:
+
+    if (skipped := c / n) > 0.99:
+        raise RuntimeError("Too many entries, %d/%d (%0.2f%%), were skipped. "
+              "Are you using the correct database?" % (c, n, 100 * skipped))
+    elif skipped  > 0.75:
         logger.warning("%d/%d (%0.2f%%) were skipped. Are you using the "
-              "correct database?" % (c, n, float(c)/float(n)))
+              "correct database?" % (c, n, 100 * skipped))
 
