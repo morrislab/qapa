@@ -4,7 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - python>=3.5
+  - python~=3.8
   - pandas>=0.17
   - numpy>=1.10
   - bedtools=2.27.1
