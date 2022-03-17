@@ -11,7 +11,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 exec(open(os.path.join(here, 'qapa/version.py')).read())
 
 setup(name='qapa',
-      version=__version__,
+      version=__version__,  # noqa: F821
       description='RNA-seq Quantification of Alternative Polyadenylation (QAPA)',
       url='http://github.com/morrislab/qapa',
       author='Kevin Ha',
