@@ -11,6 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def extend_feature(feature, length=24):
     """Extend the 3' end by length
     """
@@ -83,7 +84,7 @@ def update_3prime(feature, min_distance=24, min_intermediate_pas=4, custom=False
             not custom and \
             int(feature[site_numsamples]) < min_intermediate_pas:
         #logger.debug("Skipping {}. Distance from 3' end: {}"\
-                     #.format(feature[0:6], dist_from_three_prime)) 
+                     #.format(feature[0:6], dist_from_three_prime))
         return None
 
     return feature
@@ -151,7 +152,7 @@ def preprocess_polyasite(polyasite_file, min_polyasite):
     validate(polyasite, polyasite_file)
 
     pas_filter = re.compile("(DS|TE)$")
-    is_v2 = polyasite.field_count() == 11 
+    is_v2 = polyasite.field_count() == 11
 
     if not is_v2:
         logger.info("Detected PolyASite version 1")
@@ -180,11 +181,10 @@ def validate(bedobj, filename):
     try:
         ft = bedobj.file_type
         if ft == 'empty':
-            logger.error("BED file %s is empty!" % filename)
-            sys.exit(1)
+            raise IOError(f"BED file {filename} is empty!")
     except IndexError as err:
-        logger.error("%s. Error reading the BED file %s." % (err, filename) +
-                     " Is the file properly formatted?")
+        raise err(f"Error reading the BED file {filename}. Is the file properly "
+                  "formatted?")
 
 
 def main(args, input_filename, fout=sys.stdout):
@@ -228,13 +228,21 @@ def main(args, input_filename, fout=sys.stdout):
         overlap_utrs = utrs.each(restore_feature)\
                            .saveas()
         logger.info("Skipping annotation step")
-    else: 
+    else:
+        logger.info("Finding intersect")
         overlap_utrs = utrs.intersect(sites, s=True, wa=True, wb=True)\
                            .each(restore_feature)\
                            .each(update_3prime,
                                  min_intermediate_pas=args.intermediate_polyasite,
                                  custom=custom_mode)\
                            .saveas()
+        logger.debug("Annotated %d UTRs", len(overlap_utrs))
+
+    if len(overlap_utrs) == 0:
+        raise RuntimeError("Failed to find any overlap between UTRs and "
+                "annotation. Please check your input files.")
+
+
     overlap_utrs = sort_bed(overlap_utrs)\
         .groupby(g=[1, 2, 3, 6, 7, 8, 9], c=[4, 5, 10, 11],
                  o=['collapse'] * 4, delim="|")\
