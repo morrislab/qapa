@@ -15,7 +15,7 @@ other tools such as [Sailfish](https://github.com/kingsfordgroup/sailfish) and
 
 ## Installation
 
-QAPA consists of both Python (3.5+) and R scripts.  A conda virtual environment
+QAPA consists of both Python and R scripts.  A conda virtual environment
 can be created using the provided `environment.yml` file.
 
 1. Clone the repo:
@@ -32,6 +32,9 @@ can be created using the provided `environment.yml` file.
         mamba env create -f environment.yml
         conda activate qapa
 
+4. Test that `qapa` command is available
+
+        qapa --help
 ---
 
 # Usage
@@ -170,6 +173,14 @@ Additional notes:
   - 3' UTRs that contain introns will be skipped.
   - Chromosome names that contain underscores are currently not supported and will be
     skipped.
+  - Only genes with `Gene Type = 'protein_coding'` will be considered.
+
+### Troubleshooting tips
+
+  - Use `--debug` option to produce more verbose logging messages
+  - Use `--save` and `--temp <dir_path>` to save intermediate files generated
+  by `qapa build`. `<dir_path>` should be a user accessible directory.
+
 
 ## 2) Extract 3′ UTR sequences (`fasta`)
 
