@@ -1,9 +1,14 @@
+from pathlib import Path
 import unittest
 import sys
 from io import StringIO
 from qapa import qapa
 from qapa import extract as ex
 from qapa.extract import get_stripped_name
+
+
+DIR = Path(__file__).parent
+
 
 class RowTestCase(unittest.TestCase):
 
@@ -33,18 +38,23 @@ class RowTestCase(unittest.TestCase):
         target = my_row.is_on_random_chromosome()
         self.assertFalse(target)
 
-
     def test_extract_last_exon(self):
         target = self.row.extract_last_exon(n=1, min_utr_length=0)
         self.assertEqual(target[1], 74026591, "Start coord not equal")
         self.assertEqual(target[2], 74036494, "End coord not equal")
 
-
-    def test_invalid_gene_pred_format(self):
+    def test_invalid_gene_pred_insufficient_columns(self):
         my_row = '143   ENSMUST00000100750.9    chrY    -   74026591    74085669    74035416    74079934    4   74026591,74036981,74079908,74085509,    74036494,74037332,74080032,74085669,'
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as cm:
             ex.Row(my_row)
+        self.assertIn('Insufficient number of columns', str(cm.exception))
 
+    def test_invalid_gene_pred_dtype_error(self):
+        my_row = '143	ENSMUST00000100750.9	chrY	-	foo	74085669	74035416	74079934	4	74026591,74036981,74079908,74085509,	74036494,74037332,74080032,74085669,	0	Mecp2	cmpl	cmpl	2,2,0,-1,'
+        with self.assertRaises(ValueError) as cm:
+            my_row = ex.Row(my_row)
+        self.assertIn('Unable to parse the input genePred file',
+                str(cm.exception))
     def test_get_stripped_name(self):
         target = get_stripped_name(self.row.name)
         self.assertEqual(target, "ENSMUST00000100750")
@@ -62,10 +72,10 @@ class RowTestCase(unittest.TestCase):
 class ExtractTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.inputs_with_header = ['python/files/test_genepred.txt',
-                                  'python/files/test_genepred_nohash.txt']
-        cls.input_no_header = 'python/files/test_genepred_custom.txt'
-        cls.ensdb = 'python/files/test_ensembl.txt'
+        cls.inputs_with_header = [str(DIR / 'files/test_genepred.txt'),
+                                  str(DIR / 'files/test_genepred_nohash.txt')]
+        cls.input_no_header = str(DIR / 'files/test_genepred_custom.txt')
+        cls.ensdb = str(DIR / 'files/test_ensembl.txt')
 
     def _getargs(self, db, input):
         return qapa.getoptions(['build', '--db', db, '-N', input])

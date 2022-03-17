@@ -1,12 +1,17 @@
+from pathlib import Path
 import unittest
 from io import StringIO
 
 from qapa import fasta
 
+
+DIR = Path(__file__).parent
+
+
 class FastaTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.fasta_file = "python/files/test.fa"
+        self.fasta_file = DIR / "files/test.fa"
 
     def test_filter_sequences(self):
         output = StringIO()
