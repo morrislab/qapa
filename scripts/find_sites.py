@@ -47,12 +47,12 @@ class Interval:
             finalstart = self.peak
             finalend = self.peak + 1
         self.name = self.chr + ":" + str(self.start) + "-" + str(self.end)
-        print "\t".join([self.chr, str(finalstart), str(finalend), 
-            self.name, str(self.score), self.strand])
+        print("\t".join([self.chr, str(finalstart), str(finalend), 
+            self.name, str(self.score), self.strand]))
 
     def finalize_interval(self):
-        print "\t".join([self.chr, str(self.start), str(self.end), 
-            self.peak, str(self.read_count), self.strand])
+        print("\t".join([self.chr, str(self.start), str(self.end), 
+            self.peak, str(self.read_count), self.strand]))
 
 def overlaps(a, b):
     '''Determine if two intervals overlap in genomic coordinates'''
