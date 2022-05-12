@@ -209,6 +209,8 @@ Output is in BED format plus additional gene symbol column
 
 def build(args):
     from . import extract, extend, annotate, collapse
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
 
     tf1 = tempfile.NamedTemporaryFile(mode='w', prefix='qapa_extract_',
                                       delete=False)
@@ -253,6 +255,8 @@ def build(args):
 
 def fetch_sequences(args):
     from . import fasta
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
     fasta.main(args)
     logger.info("Sequences written to {}".format(args.output_file[0]))
 
@@ -285,8 +289,6 @@ def quant(args):
 
 def main():
     args = getoptions()
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
     logger.info("Version %s" % __version__)
 
     args.func(args)
