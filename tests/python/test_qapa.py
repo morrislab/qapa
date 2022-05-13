@@ -70,6 +70,19 @@ class QapaTestCase(unittest.TestCase):
             r'compute_pau.R')
 
 
+    def test_main(self):
+        db = NamedTemporaryFile()
+        args = qapa.getoptions(['quant', '--db', db.name, 'test_1.sf',
+                        'test_2.sf'])
+
+        with patch('qapa.qapa.getoptions', return_value=args) as mock_opt, \
+             self.assertLogs("qapa", level="INFO") as cm:
+            qapa.main()
+
+        mock_opt.assert_called_once()
+        self.assertIn("Finished!", cm.output[-1])
+
+
+
 if __name__ == '__main__':
     unittest.main()
-
