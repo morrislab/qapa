@@ -15,6 +15,7 @@ dependencies:
   - r-dplyr>=0.7
   - r-optparse
   - r-data.table
+  - r-rlang>=1.0.1
   - r-stringr
   - r-testthat
   - ucsc-gtftogenepred
