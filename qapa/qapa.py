@@ -128,6 +128,8 @@ Output is in BED format plus additional gene symbol column
     fasta_parser.add_argument('bed_file', nargs=1, help='Input BED filename')
     fasta_parser.add_argument('output_file', nargs=1, help='Output filename')
     optional = fasta_parser._action_groups.pop()
+    optional.add_argument("--decoys", default=False, action='store_true', help="Generate a decoy-aware output 3'UTRome FASTA for compatibility with Salmon's >= v1.0.0 selective alignment procedure")
+    optional.add_argument("-d", "--decoys-output-file", type=str, dest='decoys_output_file', default="decoys.txt", help="Name of output decoys file (default: decoys.txt). Ignored if --decoys is not passed")
     required = fasta_parser.add_argument_group('Required named arguments')
     required.add_argument('-f', '--fi', type=str, dest='genome', required=True,
                           help='Genome FASTA file (*uncompressed)')
