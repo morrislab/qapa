@@ -50,7 +50,7 @@ class Interval:
             utr_co = [self.end2, self.end]
         else:
             utr_co = [self.start, self.start2]
-        new_name = [self.name, self.species, self.chrom, 
+        new_name = [self.name, self.species, self.chrom,
                     self.start, self.end, self.strand, 'utr'] + utr_co
         new_name = "_".join([str(x) for x in new_name])
         self.set_score()
@@ -144,13 +144,13 @@ def merge_bed(args, inputfile):
     five_prime_pos = forward.groupby('gene_id')['start'].min()
     forward = forward.join(five_prime_pos, on='gene_id', rsuffix='_r')
     forward['start'] = forward['start_r']
-    forward = forward.drop('start_r', 1)
+    forward = forward.drop('start_r', axis=1)
 
     reverse = three_prime_df[three_prime_df.strand == '-']
     five_prime_pos = reverse.groupby('gene_id')['end'].max()
     reverse = reverse.join(five_prime_pos, on='gene_id', rsuffix='_r')
     reverse['end'] = reverse['end_r']
-    reverse = reverse.drop('end_r', 1)
+    reverse = reverse.drop('end_r', axis=1)
 
     assert three_prime_df.shape[0] == forward.shape[0] + reverse.shape[0]
 
