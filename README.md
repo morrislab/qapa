@@ -195,6 +195,12 @@ Essentially `fasta` is a wrapper that calls `bedtools getfasta`. Note that
 `genome.fa` must be uncompressed. Sequences will be saved in
 `output_sequences.fa`.
 
+Since the initial publication, Salmon added a 'selective alignment' procedure ([Srivastava, Malik et al., Genome Biology, 2020](https://doi.org/10.1186/s13059-020-02151-8)). The 'full' selective alignment jointly aligns the reads to the input transcriptome and the genome, discarding alignments that map better to the genome than the transcriptome. To generate a fasta file compatible with Salmon's selective alignment procedure (a 'decoy-aware transcriptome'), run `qapa fasta` with the `--decoys` flag:
+
+    qapa fasta -f genome.fa --decoys output_utrs.bed output_sequences.fa
+
+This will save the transcript sequences appended with the genome sequence from `genome.fa` to `output_sequences.fa`. This also generates a file named `decoys.txt`, which contains the sequence identifiers from the genome sequence to differentiate target transcripts from decoy sequences. The name of the text file can be controlled using the optional `-d` or `--decoys-output-file` argument.
+
 ## 3) Quantify 3′ UTR isoform usage (`quant`)
 
 Expression quantification of 3′ UTR isoforms must be carried out first using the
@@ -202,6 +208,10 @@ FASTA file prepared by `fasta` as the index. For example, to index the sequences
 using Salmon:
 
     salmon index -t output_sequences.fa -i utr_library
+
+If you generated a genome-augmented fasta file with `qapa fasta --decoys`, additionally pass the `decoys.txt` file to `salmon index`:
+
+    salmon index -t output_sequences.fa -i utr_library --decoys decoys.txt
 
 Following expression quantification, QAPA expects the results to be located inside its
 own sub-directory. For example, typical Sailfish/Salmon results may appear with
