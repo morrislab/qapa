@@ -10,18 +10,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Interval:
     def __init__(self, l, sp=None):
-        self.chrom = l[0]
-        self.start = int(l[1])
-        self.end = int(l[2])
-        self.name = l[3]
-        self.score = int(l[4])
-        self.strand = l[5]
+        self.chrom = l.seqnames
+        self.start = int(l.start)
+        self.end = int(l.end)
+        self.name = l.name
+        self.score = int(l.utr_length)
+        self.strand = l.strand
         # Last exon coordinates
-        self.start2 = int(l[6])
-        self.end2 = int(l[7])
-        self.gene_id = l[8]
+        self.start2 = int(l.lastexon_cds_start)
+        self.end2 = int(l.lastexon_cds_end)
+        self.gene_id = l.name2
         self.species = self._guess_species(sp)
 
     def is_forward(self):
@@ -106,7 +107,7 @@ def merge_bed(args, inputfile):
     overlap_diff_genes = set()
 
     logger.info("Iterating and merging intervals by 3' end")
-    for index, line in df.iterrows():
+    for line in df.itertuples(index=False):
         my_interval = Interval(line, args.species)
 
         if prev_interval is None:
@@ -115,9 +116,10 @@ def merge_bed(args, inputfile):
             if same_gene(prev_interval, my_interval):
                 prev_interval.merge(my_interval)
             else:
-                logger.debug("Skipping overlapping but different "
-                      "genes %s and %s" %
-                      (prev_interval.gene_id, my_interval.gene_id))
+                logger.debug(
+                    "Skipping overlapping but different "
+                    "genes %s and %s" % (prev_interval.gene_id, my_interval.gene_id)
+                )
                 overlap_diff_genes.add(prev_interval.gene_id)
                 overlap_diff_genes.add(my_interval.gene_id)
                 prev_interval = None
