@@ -245,7 +245,7 @@ def build(args):
         logger.info("Collapsing 3' ends")
         result = collapse.merge_bed(args, tf3.name)
         result.to_csv(sys.stdout, sep="\t", index=False, header=False)
-    except Exception as e:
+    except Exception:
         logger.exception("Error occurred in build:")
         exit(1)
     finally:

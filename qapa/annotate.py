@@ -5,7 +5,6 @@
 import sys
 import os
 import pybedtools
-from pybedtools import featurefuncs
 import re
 import logging
 

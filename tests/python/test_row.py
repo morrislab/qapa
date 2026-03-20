@@ -1,6 +1,5 @@
 from pathlib import Path
 import unittest
-import sys
 from io import StringIO
 from qapa import qapa
 from qapa import extract as ex

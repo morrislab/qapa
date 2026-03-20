@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import Mock, patch, ANY
+from unittest.mock import patch, ANY
 import argparse
 from tempfile import NamedTemporaryFile
 from io import StringIO
