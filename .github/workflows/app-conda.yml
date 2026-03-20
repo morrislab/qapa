@@ -23,19 +23,22 @@ jobs:
 
     - name: Install dependencies
       run: |
-        conda env update --file environment.yml --name base
-        conda install -c conda-forge pytest
+        conda env update --file environment.yml --name qapa
+        conda install --name qapa -c conda-forge pytest
 
     - name: Install ruff without running check or format
       uses: astral-sh/ruff-action@v3
       with:
-        args: "--version"
+        version: ">=0.15.7,<0.16.0"
+        src: >-
+          qapa
+          tests/python
 
     - name: Test with pytest
       run: |
-        pytest tests/python
+        conda run -n qapa pytest tests/python
 
     - name: Test R
       run: |
         cd tests
-        Rscript run_R_tests.R   
+        conda run -n qapa Rscript run_R_tests.R   
