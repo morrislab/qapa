@@ -16,13 +16,12 @@ def filter_sequences(fasta_file, min_length=100, fout=sys.stdout):
     seqs = set()
     ids = set()
     skipped = 0
-    handle = open(fasta_file, 'r')
+    handle = open(fasta_file, "r")
 
     for record in SeqIO.parse(handle, "fasta"):
         sequence = str(record.seq)
 
-        if len(sequence) > min_length and \
-                not (sequence in seqs or record.id in ids):
+        if len(sequence) > min_length and not (sequence in seqs or record.id in ids):
             seqs.add(sequence)
             ids.add(record.id)
             SeqIO.write(record, fout, "fasta")
@@ -37,13 +36,13 @@ def filter_sequences(fasta_file, min_length=100, fout=sys.stdout):
 
 
 def add_decoys(genome, decoys_output_file, fout=sys.stdout):
-    '''
+    """
     Append genome sequence to output 3'UTRome to generate a 'decoy-aware' 3'UTRome for use with Salmon >= v1.0.0's selective alignment procedure
     Follows recipe outlined here: https://combine-lab.github.io/alevin-tutorial/2019/selective-alignment/
-    '''
+    """
 
     ids = []
-    handle = open(genome, 'r')
+    handle = open(genome, "r")
 
     for record in SeqIO.parse(genome, "fasta"):
         ids.append(record.id)
@@ -69,7 +68,9 @@ def main(args):
     filter_sequences(seqs.seqfn, fout=fout)
 
     if args.decoys:
-        logger.info(f"Append genome sequence - {args.genome} - as decoys to the output 3'UTR FASTA - {args.output_file[0]}")
+        logger.info(
+            f"Append genome sequence - {args.genome} - as decoys to the output 3'UTR FASTA - {args.output_file[0]}"
+        )
         add_decoys(args.genome, args.decoys_output_file, fout=fout)
 
     fout.close()
