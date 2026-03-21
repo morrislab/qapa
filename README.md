@@ -23,13 +23,9 @@ can be created using the provided `environment.yml` file.
         git clone https://github.com/morrislab/qapa.git
         cd qapa
 
-2. (Optional) Install `mamba` for faster Conda management
+2.  Create the environment
 
-        conda install -c conda-forge mamba
-
-3.  Create the environment
-
-        mamba env create -f environment.yml
+        conda env create -f environment.yml
         conda activate qapa
 
 4. Test that `qapa` command is available

@@ -4,8 +4,8 @@ import pandas as pd
 
 from qapa import extend
 
-class ExtendTestCase(unittest.TestCase):
 
+class ExtendTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Last exons have matching 5' prime
@@ -28,28 +28,29 @@ chr1	1781220	1782091	ENSRNOT00000080138_ENSRNOG00000049505.2	647	+	1781220	17814
         result = extend.extend_5prime(self.df_shared, 0)
         self.assertEqual(result.start.tolist(), self.df_shared.start.tolist())
         self.assertEqual(result.end.tolist(), self.df_shared.end.tolist())
-        
+
         result = extend.extend_5prime(self.df_non_shared, 0)
-        self.assertEqual(result.start.tolist(), [1781220]*2)
+        self.assertEqual(result.start.tolist(), [1781220] * 2)
         self.assertEqual(result.end.tolist(), self.df_non_shared.end.tolist())
-        
+
     def test_extend_1(self):
         result = extend.extend_5prime(self.df_shared, 1)
         self.assertEqual(result.start.tolist(), self.df_shared.start.tolist())
         self.assertEqual(result.end.tolist(), self.df_shared.end.tolist())
 
         result = extend.extend_5prime(self.df_non_shared, 1)
-        self.assertEqual(result.start.tolist(), [1781220]*2)
+        self.assertEqual(result.start.tolist(), [1781220] * 2)
         self.assertEqual(result.end.tolist(), self.df_non_shared.end.tolist())
-        
+
     def test_extend_2(self):
         result = extend.extend_5prime(self.df_shared, 1)
         self.assertEqual(result.start.tolist(), self.df_shared.start.tolist())
         self.assertEqual(result.end.tolist(), self.df_shared.end.tolist())
 
         result = extend.extend_5prime(self.df_non_shared, 2)
-        self.assertEqual(result.start.tolist(), [1777791]*2)
+        self.assertEqual(result.start.tolist(), [1777791] * 2)
         self.assertEqual(result.end.tolist(), self.df_non_shared.end.tolist())
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

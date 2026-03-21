@@ -27,13 +27,13 @@ def _split_int(string):
 
 
 def _extend(feature, most_five_prime, forward, num_extends=0):
-    '''
+    """
     For each feature, check if the 5' end of the 3' UTR interval is in front
     of the most proximal 3' site.
 
     If yes, then we want to extend it by including additional upstream exons.
     If no, then just create the block* columns.
-    '''
+    """
     stack = []
     block_sizes = []
     block_starts = []
@@ -61,8 +61,7 @@ def _extend(feature, most_five_prime, forward, num_extends=0):
         i -= 1
 
         if most_five_prime >= exon_starts[min_index]:
-            while i >= min_index \
-                    and exon_starts[i] >= most_five_prime:
+            while i >= min_index and exon_starts[i] >= most_five_prime:
                 stack.append(i)
                 i -= 1
 
@@ -80,8 +79,7 @@ def _extend(feature, most_five_prime, forward, num_extends=0):
         i = 1
 
         if most_five_prime <= exon_ends[min_index]:
-            while i <= min_index \
-                    and exon_ends[i] <= most_five_prime:
+            while i <= min_index and exon_ends[i] <= most_five_prime:
                 stack.append(i)
                 i += 1
 
@@ -93,21 +91,25 @@ def _extend(feature, most_five_prime, forward, num_extends=0):
         interval_end = exon_ends[stack[-1]]
 
     # Create new block columns
-    block_cols = pd.Series([len(block_sizes),
-                           ",".join([str(x) for x in block_sizes]),
-                           ",".join([str(x) for x in block_starts])],
-                           index=['blockCount', 'blockSizes', 'blockStarts'])
+    block_cols = pd.Series(
+        [
+            len(block_sizes),
+            ",".join([str(x) for x in block_sizes]),
+            ",".join([str(x) for x in block_starts]),
+        ],
+        index=["blockCount", "blockSizes", "blockStarts"],
+    )
     newfeature = pd.concat([feature, block_cols])
-    newfeature['start'] = interval_start
-    newfeature['end'] = interval_end
+    newfeature["start"] = interval_start
+    newfeature["end"] = interval_end
     return newfeature
 
 
 def extend_5prime(feature_group, numextends=0):
-    '''
+    """
     For a set of features grouped by gene_id, find the most 5' end and extend
     the 5' ends of all features to match it
-    '''
+    """
 
     newgroup = []
     forward = is_plus(feature_group.strand)
@@ -117,18 +119,18 @@ def extend_5prime(feature_group, numextends=0):
         most_five_prime = max(feature_group.end)
 
     for index, row in feature_group.iterrows():
-        newgroup.append(_extend(row, most_five_prime, forward,
-                                numextends))
+        newgroup.append(_extend(row, most_five_prime, forward, numextends))
 
-    newgroup = pd.DataFrame(newgroup)\
-                 .drop(['exonStarts', 'exonEnds'], axis=1)
+    newgroup = pd.DataFrame(newgroup).drop(["exonStarts", "exonEnds"], axis=1)
 
     if forward:
-        newgroup = newgroup.groupby('name2')\
-                        .apply(lambda g: g[g['end'] >= g['start'].max()])
+        newgroup = newgroup.groupby("name2").apply(
+            lambda g: g[g["end"] >= g["start"].max()]
+        )
     else:
-        newgroup = newgroup.groupby('name2')\
-                        .apply(lambda g: g[g['start'] <= g['end'].min()])
+        newgroup = newgroup.groupby("name2").apply(
+            lambda g: g[g["start"] <= g["end"].min()]
+        )
     return newgroup
 
 
@@ -136,7 +138,7 @@ def main(args, input_filename):
     if args.debug:
         logger.setLevel(logging.DEBUG)
 
-    if input_filename == '-':
+    if input_filename == "-":
         df = pd.read_table(sys.stdin)
     else:
         df = pd.read_table(input_filename)
@@ -147,8 +149,10 @@ def main(args, input_filename):
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
     with ProcessPoolExecutor(args.cores) as executor:
-        futures = {executor.submit(extend_5prime, group, args.numextends): name2 \
-                    for name2, group in df.groupby('name2')}
+        futures = {
+            executor.submit(extend_5prime, group, args.numextends): name2
+            for name2, group in df.groupby("name2")
+        }
         for future in as_completed(futures):
             name2 = futures[future]
             try:
@@ -159,5 +163,4 @@ def main(args, input_filename):
     # for name2, group in tqdm(df.groupby('name2'), desc="extend"):
     #     newdf.append(extend_5prime(group, args.numextends))
 
-    return pd.concat(newdf).sort_values(['seqnames', 'start'])
-
+    return pd.concat(newdf).sort_values(["seqnames", "start"])
